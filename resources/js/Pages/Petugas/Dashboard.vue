@@ -80,7 +80,7 @@ const today = new Date().toLocaleDateString('id-ID', {
                 </button>
 
                 <!-- Action 2: Daily Quiz -->
-                <button class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group">
+                <Link :href="route('quiz.index')" class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group block">
                     <div class="flex items-center gap-3 text-left">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-amber-500">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -93,7 +93,7 @@ const today = new Date().toLocaleDateString('id-ID', {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
-                </button>
+                </Link>
 
                 <!-- Action 3: Report Incident -->
                 <button class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group">
