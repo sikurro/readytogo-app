@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             'status_fit' => true,
         ]);
 
-        // Seed Petugas User
+        // Seed Petugas User 1
         User::create([
             'name' => 'Ahmad R2G',
             'nip' => '000001',
@@ -36,6 +36,50 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Petugas Kepanduan Lapangan',
+            'status_fit' => true,
+        ]);
+
+        // Seed Petugas User 2
+        User::create([
+            'name' => 'Budi R2G',
+            'nip' => '000002',
+            'email' => 'petugas2@r2g.com',
+            'password' => Hash::make('password'),
+            'role_id' => $petugasRole->id,
+            'position' => 'Petugas Patroli Dermaga',
+            'status_fit' => true,
+        ]);
+
+        // Seed Petugas User 3
+        User::create([
+            'name' => 'Charlie R2G',
+            'nip' => '000003',
+            'email' => 'petugas3@r2g.com',
+            'password' => Hash::make('password'),
+            'role_id' => $petugasRole->id,
+            'position' => 'Operator Crane',
+            'status_fit' => true,
+        ]);
+
+        // Seed Petugas User 4
+        User::create([
+            'name' => 'Dedi R2G',
+            'nip' => '000004',
+            'email' => 'petugas4@r2g.com',
+            'password' => Hash::make('password'),
+            'role_id' => $petugasRole->id,
+            'position' => 'Pengawas Lapangan K3',
+            'status_fit' => true,
+        ]);
+
+        // Seed Petugas User 5
+        User::create([
+            'name' => 'Eko R2G',
+            'nip' => '000005',
+            'email' => 'petugas5@r2g.com',
+            'password' => Hash::make('password'),
+            'role_id' => $petugasRole->id,
+            'position' => 'Petugas Tambat Kapal',
             'status_fit' => true,
         ]);
     }

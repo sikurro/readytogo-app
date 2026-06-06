@@ -69,4 +69,12 @@ class User extends Authenticatable
     {
         return $this->role && $this->role->name === 'Petugas';
     }
+
+    /**
+     * Get the quiz attempts for the user.
+     */
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
 }
