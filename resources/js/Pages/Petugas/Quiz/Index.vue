@@ -51,6 +51,13 @@ defineProps({
                             >
                                 Lihat Klasemen (Leaderboard)
                             </Link>
+
+                            <Link 
+                                :href="route('quiz.history')"
+                                class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-lg shadow transition duration-150 ease-in-out block"
+                            >
+                                Lihat Riwayat Kuis Saya
+                            </Link>
                         </div>
                     </div>
                     
