@@ -113,4 +113,19 @@ class QuizController extends Controller
             'currentMonth' => $currentMonth,
         ]);
     }
+
+    public function history()
+    {
+        $currentMonth = date('Y-m');
+        $history = QuizAttempt::with('quiz')
+            ->where('user_id', Auth::id())
+            ->where('month_year', $currentMonth)
+            ->latest()
+            ->get();
+
+        return Inertia::render('Petugas/Quiz/History', [
+            'history' => $history,
+            'currentMonth' => $currentMonth,
+        ]);
+    }
 }

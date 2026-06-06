@@ -52,6 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/quiz/play', [QuizController::class, 'play'])->name('quiz.play');
     Route::post('/quiz/store', [QuizController::class, 'storeAttempt'])->name('quiz.store');
     Route::get('/quiz/leaderboard', [QuizController::class, 'leaderboard'])->name('quiz.leaderboard');
+    Route::get('/quiz/history', [QuizController::class, 'history'])->name('quiz.history');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/admin/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('admin.quiz.history');
 });
 
 require __DIR__.'/auth.php';
