@@ -26,6 +26,7 @@ Dokumen ini berisi *timeline* dan tahapan pengembangan (roadmap) tingkat tinggi 
   - Penyimpanan data laporan ke server (lokasi, foto, jenis).
 - **Modul Kuis / Edukasi:**
   - Antarmuka permainan *full-screen* dengan *timer* dinamis per soal.
+  - soal yang ditampilkan bisa berupa teks ataupun gambar (nanti akan ada fitur input gambar)
   - Logic penghitungan skor dan penyimpanan ke riwayat (attempts).
 
 ---
