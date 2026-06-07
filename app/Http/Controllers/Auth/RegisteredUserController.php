@@ -37,10 +37,20 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $petugasRole = \App\Models\Role::firstOrCreate(['name' => 'Petugas']);
+
+        do {
+            $nip = str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+        } while (User::where('nip', $nip)->exists());
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'nip' => $nip,
+            'role_id' => $petugasRole->id,
+            'position' => 'Staff',
+            'status_fit' => true,
         ]);
 
         event(new Registered($user));
