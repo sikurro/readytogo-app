@@ -36,15 +36,23 @@ const logout = () => {
             <!-- Navigation Links -->
             <nav class="flex-1 py-4 px-3 space-y-1">
                 <!-- Dashboard -->
-                <Link :href="route('admin.dashboard')" :class="[route().current('admin.dashboard') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
+                <Link :href="route('admin.dashboard')" :class="[route().current('admin.dashboard') ? 'bg-blue-500/10 text-blue-500 border-l-4 border-blue-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                     </svg>
                     <span v-if="isSidebarOpen">Dashboard</span>
                 </Link>
 
+                <!-- Bank Soal -->
+                <Link :href="route('admin.questions.index')" :class="[route().current('admin.questions.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+                    </svg>
+                    <span v-if="isSidebarOpen">Bank Soal</span>
+                </Link>
+
                 <!-- Quizzes Management -->
-                <Link :href="route('admin.dashboard')" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                <Link :href="route('admin.quizzes.index')" :class="[route().current('admin.quizzes.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -108,23 +116,6 @@ const logout = () => {
             <!-- Header bar -->
             <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-30">
                 <h2 class="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
-                    <slot name="header" />
-                </h2>
-                
-                <div class="flex items-center gap-4">
-                    <span class="text-xs text-slate-400">Status Database: <span class="text-emerald-400 font-semibold">Online</span></span>
-                </div>
-            </header>
-
-            <!-- Slot -->
-            <main class="flex-1 overflow-y-auto p-6 bg-slate-950/20">
-                <div class="max-w-7xl mx-auto">
-                    <slot />
-                </div>
-            </main>
-        </div>
-    </div>
-</template>
                     <slot name="header" />
                 </h2>
                 
