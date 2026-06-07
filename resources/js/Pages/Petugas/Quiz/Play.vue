@@ -20,6 +20,10 @@ const timerRef = ref(null);
 
 const currentQuestion = computed(() => questions[currentQuestionIndex.value] || null);
 
+const hasAnswerImages = computed(() => {
+    return currentQuestion.value?.answers?.some(a => a.answer_image) || false;
+});
+
 const handleAnswer = (answer) => {
     if (!isPlaying.value) return;
     isPlaying.value = false;
@@ -68,79 +72,98 @@ const finishQuiz = () => {
 };
 
 const getAnswerClass = (answer) => {
-    if (!selectedAnswerId.value) return 'bg-white hover:bg-gray-100 border-gray-300';
+    if (!selectedAnswerId.value) {
+        return 'bg-slate-900/60 hover:bg-slate-900 border-slate-800 hover:border-slate-700/80 text-slate-200';
+    }
     
-    if (answer.is_correct) return 'bg-green-500 text-white border-green-600';
-    if (selectedAnswerId.value === answer.id && !answer.is_correct) return 'bg-red-500 text-white border-red-600';
+    if (answer.is_correct) {
+        return 'bg-emerald-500/20 border-emerald-500 text-emerald-400 font-extrabold shadow-[0_0_10px_rgba(16,185,129,0.15)]';
+    }
+    if (selectedAnswerId.value === answer.id && !answer.is_correct) {
+        return 'bg-rose-500/20 border-rose-500 text-rose-400 font-extrabold shadow-[0_0_10px_rgba(244,63,94,0.15)]';
+    }
     
-    return 'bg-gray-100 border-gray-300 opacity-50 text-gray-500';
+    return 'border-slate-900 bg-slate-900/20 opacity-30 text-slate-500 cursor-not-allowed';
 };
 </script>
 
 <template>
     <Head title="Bermain Kuis" />
 
-    <div class="min-h-screen bg-gray-900 text-white flex flex-col p-4 md:p-8 justify-center">
+    <div class="h-[100dvh] max-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col p-4 overflow-hidden select-none justify-center">
         <!-- Empty Questions Fallback -->
-        <div v-if="questions.length === 0" class="max-w-md w-full mx-auto bg-gray-800 rounded-xl p-8 shadow-xl text-center">
-            <div class="mb-4 text-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <div v-if="questions.length === 0" class="max-w-md w-full mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-center">
+            <div class="mb-4 text-rose-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Kuis Belum Siap</h2>
-            <p class="text-gray-400 mb-6">Kuis ini belum memiliki daftar pertanyaan/soal. Silakan hubungi admin untuk menambahkan soal.</p>
-            <a :href="route('quiz.index')" class="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+            <h2 class="text-xl font-bold mb-2 text-slate-100">Kuis Belum Siap</h2>
+            <p class="text-slate-400 text-sm mb-6">Kuis ini belum memiliki daftar pertanyaan/soal. Silakan hubungi admin untuk menambahkan soal.</p>
+            <a :href="route('quiz.index')" class="inline-block w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-3 px-6 rounded-xl text-center shadow-lg transition duration-200 text-sm">
                 Kembali ke Beranda Kuis
             </a>
         </div>
 
-        <div v-else-if="currentQuestion" class="flex-grow flex flex-col max-w-4xl mx-auto w-full">
+        <div v-else-if="currentQuestion" class="flex-grow flex flex-col max-w-lg mx-auto w-full h-full justify-between py-2">
             
             <!-- Header -->
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xl font-bold">Soal {{ currentQuestionIndex + 1 }} / {{ questions.length }} <span v-if="isDemo" class="ml-2 text-xs uppercase px-2 py-1 bg-yellow-600 rounded">Simulasi</span></span>
-                <span class="text-xl font-bold text-yellow-400">Skor: {{ score }}</span>
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                    Soal {{ currentQuestionIndex + 1 }} / {{ questions.length }}
+                    <span v-if="isDemo" class="text-[9px] uppercase px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-full font-black">Simulasi</span>
+                </span>
+                <span class="text-sm font-black text-amber-500">Skor: {{ score }}</span>
             </div>
 
             <!-- Timer -->
-            <QuizTimerBar 
-                :key="currentQuestionIndex"
-                ref="timerRef"
-                :duration="currentQuestion.timer_seconds" 
-                :isPlaying="isPlaying"
-                @timeUp="handleTimeUp" 
-            />
+            <div class="mb-3">
+                <QuizTimerBar 
+                    :key="currentQuestionIndex"
+                    ref="timerRef"
+                    :duration="currentQuestion.timer_seconds" 
+                    :isPlaying="isPlaying"
+                    @timeUp="handleTimeUp" 
+                />
+            </div>
 
             <!-- Question Area -->
-            <div class="bg-gray-800 rounded-xl p-6 shadow-xl flex-grow flex flex-col justify-center items-center mb-6">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex-grow flex flex-col justify-center items-center mb-4 min-h-[150px] max-h-[420px] overflow-hidden">
                 <!-- Question Image if any -->
                 <img v-if="currentQuestion.question_image" 
                      :src="currentQuestion.question_image" 
                      alt="Question Image"
-                     class="max-h-64 rounded-lg mb-6 object-contain" />
+                     class="max-h-52 md:max-h-64 rounded-lg mb-3 object-contain shadow-inner" />
                 
-                <h2 v-if="currentQuestion.question_text" class="text-2xl md:text-3xl font-bold text-center leading-tight">
+                <h2 v-if="currentQuestion.question_text" 
+                    class="text-center text-slate-100"
+                    :class="[!currentQuestion.question_image ? 'text-2xl md:text-4xl font-black px-6 tracking-tight leading-normal' : 'text-base md:text-xl font-bold leading-snug']"
+                >
                     {{ currentQuestion.question_text }}
                 </h2>
             </div>
 
             <!-- Answers Area (2x2 Grid) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 mt-auto">
                 <button 
                     v-for="answer in currentQuestion.answers" 
                     :key="answer.id"
                     @click="handleAnswer(answer)"
                     :disabled="!isPlaying"
-                    class="border-2 rounded-xl p-4 md:p-6 text-lg md:text-xl font-bold transition-all duration-200 flex flex-col justify-center items-center text-gray-900 min-h-[100px]"
+                    class="border-2 rounded-2xl p-2.5 transition-all duration-200 flex flex-col justify-center items-center min-h-[145px] max-h-[180px] overflow-hidden"
                     :class="getAnswerClass(answer)"
                 >
                     <img v-if="answer.answer_image" 
                          :src="answer.answer_image" 
                          alt="Answer Image"
-                         class="max-h-32 mb-2 rounded object-contain" />
+                         class="h-28 md:h-32 w-auto mb-1 rounded-lg object-contain" />
                     
-                    <span v-if="answer.answer_text" class="text-center">{{ answer.answer_text }}</span>
+                    <span v-if="answer.answer_text" 
+                          class="text-center leading-tight"
+                          :class="[!answer.answer_image ? 'text-sm md:text-lg font-black px-1' : 'text-xs md:text-sm font-bold']"
+                    >
+                        {{ answer.answer_text }}
+                    </span>
                 </button>
             </div>
             
