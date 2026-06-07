@@ -4,10 +4,11 @@ import { Head, router } from '@inertiajs/vue3';
 import QuizTimerBar from '@/Components/QuizTimerBar.vue';
 
 const props = defineProps({
-    quiz: Object
+    quiz: Object,
+    isDemo: Boolean
 });
 
-const questions = props.quiz.questions;
+const questions = props.quiz.questions || [];
 const currentQuestionIndex = ref(0);
 const score = ref(0);
 const correctAnswersCount = ref(0);
@@ -58,10 +59,11 @@ const nextQuestion = () => {
 const finishQuiz = () => {
     timeSpentMs.value = Date.now() - startTime.value;
     
-    router.post(route('quiz.store'), {
+    router.post(route('quiz.store', props.quiz.id), {
         score: score.value,
         correct_answers: correctAnswersCount.value,
-        time_ms: timeSpentMs.value
+        time_ms: timeSpentMs.value,
+        is_demo: props.isDemo
     });
 };
 
@@ -78,12 +80,26 @@ const getAnswerClass = (answer) => {
 <template>
     <Head title="Bermain Kuis" />
 
-    <div class="min-h-screen bg-gray-900 text-white flex flex-col p-4 md:p-8">
-        <div v-if="currentQuestion" class="flex-grow flex flex-col max-w-4xl mx-auto w-full">
+    <div class="min-h-screen bg-gray-900 text-white flex flex-col p-4 md:p-8 justify-center">
+        <!-- Empty Questions Fallback -->
+        <div v-if="questions.length === 0" class="max-w-md w-full mx-auto bg-gray-800 rounded-xl p-8 shadow-xl text-center">
+            <div class="mb-4 text-red-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Kuis Belum Siap</h2>
+            <p class="text-gray-400 mb-6">Kuis ini belum memiliki daftar pertanyaan/soal. Silakan hubungi admin untuk menambahkan soal.</p>
+            <a :href="route('quiz.index')" class="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                Kembali ke Beranda Kuis
+            </a>
+        </div>
+
+        <div v-else-if="currentQuestion" class="flex-grow flex flex-col max-w-4xl mx-auto w-full">
             
             <!-- Header -->
             <div class="flex justify-between items-center mb-4">
-                <span class="text-xl font-bold">Soal {{ currentQuestionIndex + 1 }} / {{ questions.length }}</span>
+                <span class="text-xl font-bold">Soal {{ currentQuestionIndex + 1 }} / {{ questions.length }} <span v-if="isDemo" class="ml-2 text-xs uppercase px-2 py-1 bg-yellow-600 rounded">Simulasi</span></span>
                 <span class="text-xl font-bold text-yellow-400">Skor: {{ score }}</span>
             </div>
 
