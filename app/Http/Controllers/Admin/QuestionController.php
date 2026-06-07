@@ -112,6 +112,7 @@ class QuestionController extends Controller
         $request->validate([
             'question_text' => 'required|string',
             'question_image' => 'nullable|image|max:2048',
+            'remove_question_image' => 'nullable|boolean',
             'risk_level' => 'required|in:Low,Medium,High',
             'reference' => 'nullable|string',
             'categories' => 'required|array',
@@ -120,6 +121,7 @@ class QuestionController extends Controller
             'answers.*.id' => 'required|exists:answers,id',
             'answers.*.answer_text' => 'nullable|string',
             'answers.*.answer_image' => 'nullable|image|max:2048',
+            'answers.*.remove_answer_image' => 'nullable|boolean',
             'answers.*.is_correct' => 'required|boolean'
         ]);
 
@@ -127,6 +129,8 @@ class QuestionController extends Controller
         if ($request->hasFile('question_image')) {
             $path = $request->file('question_image')->store('questions', 'public');
             $data['question_image'] = '/storage/' . $path;
+        } elseif ($request->boolean('remove_question_image')) {
+            $data['question_image'] = null;
         }
         $question->update($data);
         
@@ -142,6 +146,8 @@ class QuestionController extends Controller
             if (isset($ansData['answer_image']) && $ansData['answer_image'] instanceof \Illuminate\Http\UploadedFile) {
                 $path = $ansData['answer_image']->store('answers', 'public');
                 $ansUpdate['answer_image'] = '/storage/' . $path;
+            } elseif (isset($ansData['remove_answer_image']) && filter_var($ansData['remove_answer_image'], FILTER_VALIDATE_BOOLEAN)) {
+                $ansUpdate['answer_image'] = null;
             }
             
             $answer->update($ansUpdate);

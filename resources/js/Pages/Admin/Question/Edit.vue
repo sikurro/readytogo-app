@@ -14,6 +14,7 @@ const form = useForm({
     _method: 'PUT',
     question_text: props.question.question_text,
     question_image: null,
+    remove_question_image: false,
     risk_level: props.question.risk_level,
     reference: props.question.reference,
     categories: props.question.categories.map(c => c.id),
@@ -21,6 +22,7 @@ const form = useForm({
         id: a.id,
         answer_text: a.answer_text,
         answer_image: null,
+        remove_answer_image: false,
         is_correct: a.is_correct === 1 || a.is_correct === true || a.is_correct === '1',
     })),
 });
@@ -34,6 +36,7 @@ const handleQuestionImageChange = (e) => {
     if (file) {
         form.question_image = file;
         questionImagePreview.value = URL.createObjectURL(file);
+        form.remove_question_image = false;
     }
 };
 
@@ -42,6 +45,27 @@ const handleAnswerImageChange = (e, index) => {
     if (file) {
         form.answers[index].answer_image = file;
         answerImagePreviews.value[index] = URL.createObjectURL(file);
+        form.answers[index].remove_answer_image = false;
+    }
+};
+
+const removeQuestionImage = () => {
+    form.question_image = null;
+    questionImagePreview.value = null;
+    form.remove_question_image = true;
+    const input = document.getElementById('question_image_input');
+    if (input) {
+        input.value = '';
+    }
+};
+
+const removeAnswerImage = (index) => {
+    form.answers[index].answer_image = null;
+    answerImagePreviews.value[index] = null;
+    form.answers[index].remove_answer_image = true;
+    const input = document.getElementById(`answer_image_input_${index}`);
+    if (input) {
+        input.value = '';
     }
 };
 
@@ -152,18 +176,25 @@ const getAnswerLabel = (index) => {
                         <p class="text-xs text-slate-400">Format: PNG, JPG, JPEG, GIF. Ukuran maks 2MB.</p>
                         <input 
                             type="file" 
+                            id="question_image_input"
                             @change="handleQuestionImageChange" 
                             accept="image/*"
                             class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 cursor-pointer transition-colors"
                         />
                         <InputError :message="form.errors.question_image" class="mt-1" />
                     </div>
-                    <div class="flex flex-col justify-center items-center bg-slate-950/80 rounded-lg p-2 min-h-[120px] border border-slate-800/50">
+                    <div class="relative flex flex-col justify-center items-center bg-slate-950/80 rounded-lg p-2 min-h-[120px] border border-slate-800/50">
+                        <button 
+                            v-if="questionImagePreview || (question.question_image && !form.remove_question_image)" 
+                            type="button" 
+                            @click="removeQuestionImage" 
+                            class="absolute top-2 right-2 bg-rose-500/80 hover:bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors z-10"
+                        >✕</button>
                         <span class="text-xs text-slate-500 mb-2 font-medium">Pratinjau Gambar</span>
                         <!-- New image preview -->
                         <img v-if="questionImagePreview" :src="questionImagePreview" class="max-h-24 object-contain rounded" />
                         <!-- Existing image preview -->
-                        <img v-else-if="question.question_image" :src="question.question_image" class="max-h-24 object-contain rounded" />
+                        <img v-else-if="question.question_image && !form.remove_question_image" :src="question.question_image" class="max-h-24 object-contain rounded" />
                         <span v-else class="text-xs text-slate-600">Tidak ada gambar</span>
                     </div>
                 </div>
@@ -251,7 +282,7 @@ const getAnswerLabel = (index) => {
                                         <input 
                                             type="text" 
                                             v-model="ans.answer_text"
-                                            :required="!ans.answer_image && !question.answers[index]?.answer_image"
+                                            :required="!ans.answer_image && (!question.answers[index]?.answer_image || ans.remove_answer_image)"
                                             class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                                             placeholder="Teks opsi jawaban..."
                                         />
@@ -262,16 +293,23 @@ const getAnswerLabel = (index) => {
                                             <label class="block text-xs font-semibold text-slate-400">Gambar Opsi (Opsional)</label>
                                             <input 
                                                 type="file" 
+                                                :id="'answer_image_input_' + index"
                                                 @change="e => handleAnswerImageChange(e, index)"
                                                 accept="image/*"
                                                 class="block w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 cursor-pointer transition-colors"
                                             />
                                         </div>
-                                        <div class="flex justify-center items-center bg-slate-950/80 rounded p-1 min-h-[50px] border border-slate-800/30">
+                                        <div class="relative flex justify-center items-center bg-slate-950/80 rounded p-1 min-h-[50px] border border-slate-800/30">
+                                            <button 
+                                                v-if="answerImagePreviews[index] || (question.answers[index] && question.answers[index].answer_image && !ans.remove_answer_image)" 
+                                                type="button" 
+                                                @click="removeAnswerImage(index)" 
+                                                class="absolute top-1 right-1 bg-rose-500/80 hover:bg-rose-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold transition-colors z-10"
+                                            >✕</button>
                                             <!-- New image preview -->
                                             <img v-if="answerImagePreviews[index]" :src="answerImagePreviews[index]" class="max-h-12 object-contain rounded" />
                                             <!-- Existing image preview -->
-                                            <img v-else-if="question.answers[index] && question.answers[index].answer_image" :src="question.answers[index].answer_image" class="max-h-12 object-contain rounded" />
+                                            <img v-else-if="question.answers[index] && question.answers[index].answer_image && !ans.remove_answer_image" :src="question.answers[index].answer_image" class="max-h-12 object-contain rounded" />
                                             <span v-else class="text-[10px] text-slate-600">Tidak ada gambar</span>
                                         </div>
                                     </div>
