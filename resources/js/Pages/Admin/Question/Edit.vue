@@ -1,5 +1,6 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
+import InputError from '@/Components/InputError.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -50,6 +51,15 @@ const setCorrectAnswer = (selectedIndex) => {
     });
 };
 
+const scrollToError = () => {
+    setTimeout(() => {
+        const firstErrorEl = document.querySelector('.text-rose-500, .text-red-600, .border-rose-500');
+        if (firstErrorEl) {
+            firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+};
+
 const submitForm = () => {
     form
         .transform((data) => {
@@ -76,6 +86,7 @@ const submitForm = () => {
         .post(route('admin.questions.update', props.question.id), {
             forceFormData: true,
             preserveScroll: true,
+            onError: () => scrollToError(),
         });
 };
 
@@ -128,12 +139,14 @@ const getAnswerLabel = (index) => {
                         rows="4" 
                         required
                         class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                        :class="form.errors.question_text ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500' : 'border-slate-800'"
                         placeholder="Ketik teks pertanyaan di sini..."
                     ></textarea>
+                    <InputError :message="form.errors.question_text" class="mt-1" />
                 </div>
 
                 <!-- Question Image -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-950/40 rounded-xl border" :class="form.errors.question_image ? 'border-rose-500/50' : 'border-slate-800'">
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-300">Gambar Pendukung (Opsional)</label>
                         <p class="text-xs text-slate-400">Format: PNG, JPG, JPEG, GIF. Ukuran maks 2MB.</p>
@@ -143,6 +156,7 @@ const getAnswerLabel = (index) => {
                             accept="image/*"
                             class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 cursor-pointer transition-colors"
                         />
+                        <InputError :message="form.errors.question_image" class="mt-1" />
                     </div>
                     <div class="flex flex-col justify-center items-center bg-slate-950/80 rounded-lg p-2 min-h-[120px] border border-slate-800/50">
                         <span class="text-xs text-slate-500 mb-2 font-medium">Pratinjau Gambar</span>
@@ -157,7 +171,7 @@ const getAnswerLabel = (index) => {
                 <!-- Categories, Risk Level, Reference -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Categories (Multi-select via Checkboxes) -->
-                    <div class="space-y-2 bg-slate-950/20 p-4 rounded-xl border border-slate-800/80">
+                    <div class="space-y-2 bg-slate-950/20 p-4 rounded-xl border" :class="form.errors.categories ? 'border-rose-500/50' : 'border-slate-800/80'">
                         <label class="block text-sm font-semibold text-slate-300">Kategori Soal (Bisa lebih dari satu)</label>
                         <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2">
                             <label v-for="cat in categories" :key="cat.id" class="flex items-center gap-2 p-2 rounded hover:bg-slate-800/30 cursor-pointer transition-colors">
@@ -170,6 +184,7 @@ const getAnswerLabel = (index) => {
                                 <span class="text-xs text-slate-300 select-none">{{ cat.name }}</span>
                             </label>
                         </div>
+                        <InputError :message="form.errors.categories" class="mt-2 text-rose-500" />
                     </div>
 
                     <!-- Risk Level & Reference -->
@@ -179,12 +194,14 @@ const getAnswerLabel = (index) => {
                             <select 
                                 v-model="form.risk_level" 
                                 required
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                                class="w-full bg-slate-950 border rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                                :class="form.errors.risk_level ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500' : 'border-slate-800'"
                             >
                                 <option value="Low">Low</option>
                                 <option value="Medium">Medium</option>
                                 <option value="High">High</option>
                             </select>
+                            <InputError :message="form.errors.risk_level" class="mt-1" />
                         </div>
 
                         <div class="space-y-2">
@@ -192,9 +209,11 @@ const getAnswerLabel = (index) => {
                             <input 
                                 type="text" 
                                 v-model="form.reference"
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                                class="w-full bg-slate-950 border rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                                :class="form.errors.reference ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500' : 'border-slate-800'"
                                 placeholder="Contoh: Undang-Undang No. 1 Tahun 1970"
                             />
+                            <InputError :message="form.errors.reference" class="mt-1" />
                         </div>
                     </div>
                 </div>

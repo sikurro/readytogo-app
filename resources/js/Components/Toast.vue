@@ -35,6 +35,19 @@ watch(
     },
     { deep: true, immediate: true }
 );
+
+// Watch for Inertia validation errors
+watch(
+    () => page.props.errors,
+    (errors) => {
+        if (errors && Object.keys(errors).length > 0) {
+            const firstKey = Object.keys(errors)[0];
+            const message = errors[firstKey];
+            showToast(message, 'error');
+        }
+    },
+    { deep: true }
+);
 </script>
 
 <template>
