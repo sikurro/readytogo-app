@@ -9,11 +9,16 @@ class Quiz extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'theme', 'duration_minutes', 'is_active'];
+    protected $fillable = ['title', 'theme', 'topic_id', 'duration_minutes', 'is_active', 'is_daily_quiz', 'daily_question_limit'];
+
+    public function topic()
+    {
+        return $this->belongsTo(Topic::class);
+    }
 
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->belongsToMany(Question::class);
     }
 
     public function attempts()

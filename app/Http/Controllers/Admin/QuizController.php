@@ -9,8 +9,121 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 
+use App\Models\Quiz;
+use App\Models\Topic;
+use App\Models\Question;
+
 class QuizController extends Controller
 {
+    public function index()
+    {
+        $quizzes = Quiz::withCount('questions')->with('topic')->latest()->paginate(10);
+        return Inertia::render('Admin/Quiz/Index', [
+            'quizzes' => $quizzes
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Admin/Quiz/Create', [
+            'topics' => Topic::all()
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'theme' => 'required|string|max:255',
+            'topic_id' => 'nullable|exists:topics,id',
+            'duration_minutes' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+            'is_daily_quiz' => 'boolean',
+            'daily_question_limit' => 'nullable|integer|min:1'
+        ]);
+
+        Quiz::create($request->all());
+        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil dibuat.');
+    }
+
+    public function edit(Quiz $quiz)
+    {
+        return Inertia::render('Admin/Quiz/Edit', [
+            'quiz' => $quiz,
+            'topics' => Topic::all()
+        ]);
+    }
+
+    public function update(Request $request, Quiz $quiz)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'theme' => 'required|string|max:255',
+            'topic_id' => 'nullable|exists:topics,id',
+            'duration_minutes' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+            'is_daily_quiz' => 'boolean',
+            'daily_question_limit' => 'nullable|integer|min:1'
+        ]);
+
+        $quiz->update($request->all());
+        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil diperbarui.');
+    }
+
+    public function destroy(Quiz $quiz)
+    {
+        $quiz->delete();
+        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil dihapus.');
+    }
+
+    public function show(Request $request, Quiz $quiz)
+    {
+        // Untuk Kuis Harian, tidak perlu select soal manual
+        if ($quiz->is_daily_quiz) {
+            return redirect()->route('admin.quizzes.index')->with('error', 'Kuis Harian mengambil soal acak dari Bank Soal, tidak perlu dikelola secara manual.');
+        }
+
+        // Ambil ID soal yang sudah terhubung
+        $attachedQuestionIds = $quiz->questions()->pluck('questions.id')->toArray();
+
+        // Query Master Bank Soal
+        $query = Question::with('categories');
+        
+        if ($request->filled('category_id')) {
+            $query->whereHas('categories', function($q) use ($request) {
+                $q->where('category_question.category_id', $request->category_id);
+            });
+        }
+        
+        if ($request->filled('risk_level')) {
+            $query->where('risk_level', $request->risk_level);
+        }
+
+        $bankQuestions = $query->latest()->paginate(15)->withQueryString();
+
+        return Inertia::render('Admin/Quiz/Show', [
+            'quiz' => $quiz,
+            'bankQuestions' => $bankQuestions,
+            'attachedQuestionIds' => $attachedQuestionIds,
+            'categories' => \App\Models\Category::all(),
+            'filters' => $request->only(['category_id', 'risk_level']),
+        ]);
+    }
+
+    public function attachQuestion(Request $request, Quiz $quiz)
+    {
+        $request->validate(['question_id' => 'required|exists:questions,id']);
+        $quiz->questions()->syncWithoutDetaching([$request->question_id]);
+        return redirect()->back()->with('success', 'Soal ditambahkan ke kuis.');
+    }
+
+    public function detachQuestion(Request $request, Quiz $quiz)
+    {
+        $request->validate(['question_id' => 'required|exists:questions,id']);
+        $quiz->questions()->detach($request->question_id);
+        return redirect()->back()->with('success', 'Soal dihapus dari kuis.');
+    }
+
     public function history(Request $request)
     {
         if (!$request->user()->isAdmin()) {

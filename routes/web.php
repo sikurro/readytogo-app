@@ -49,15 +49,24 @@ Route::middleware('auth')->group(function () {
 
     // Quiz Routes
     Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
-    Route::get('/quiz/play', [QuizController::class, 'play'])->name('quiz.play');
-    Route::post('/quiz/store', [QuizController::class, 'storeAttempt'])->name('quiz.store');
+    Route::get('/quiz/{quiz}/play', [QuizController::class, 'play'])->name('quiz.play');
+    Route::post('/quiz/{quiz}/store', [QuizController::class, 'storeAttempt'])->name('quiz.store');
     Route::get('/quiz/leaderboard', [QuizController::class, 'leaderboard'])->name('quiz.leaderboard');
     Route::get('/quiz/history', [QuizController::class, 'history'])->name('quiz.history');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/admin/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('admin.quiz.history');
-    Route::get('/admin/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('admin.quiz.history.export');
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('quiz.history');
+    Route::get('/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('quiz.history.export');
+
+    Route::resource('topics', App\Http\Controllers\Admin\TopicController::class);
+    Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('quizzes', App\Http\Controllers\Admin\QuizController::class);
+    Route::post('quizzes/{quiz}/attach-question', [App\Http\Controllers\Admin\QuizController::class, 'attachQuestion'])->name('quizzes.attach_question');
+    Route::post('quizzes/{quiz}/detach-question', [App\Http\Controllers\Admin\QuizController::class, 'detachQuestion'])->name('quizzes.detach_question');
+    
+    Route::post('questions/import', [App\Http\Controllers\Admin\QuestionController::class, 'import'])->name('questions.import');
+    Route::resource('questions', App\Http\Controllers\Admin\QuestionController::class);
 });
 
 require __DIR__.'/auth.php';

@@ -14,27 +14,27 @@ class QuizController extends Controller
 {
     public function index()
     {
-        $quiz = Quiz::where('is_active', true)->first();
+        $quizzes = Quiz::where('is_active', true)->get();
+        $userId = Auth::id();
         
-        $hasPlayedToday = false;
-        if ($quiz) {
-            $hasPlayedToday = QuizAttempt::where('user_id', Auth::id())
+        $quizzesWithStatus = $quizzes->map(function ($quiz) use ($userId) {
+            $hasPlayedToday = QuizAttempt::where('user_id', $userId)
                 ->where('quiz_id', $quiz->id)
                 ->whereDate('created_at', today())
                 ->exists();
-        }
+                
+            $quiz->has_played_today = $hasPlayedToday;
+            return $quiz;
+        });
 
         return Inertia::render('Petugas/Quiz/Index', [
-            'quiz' => $quiz,
-            'hasPlayedToday' => $hasPlayedToday,
+            'quizzes' => $quizzesWithStatus,
         ]);
     }
 
-    public function play()
+    public function play(Quiz $quiz)
     {
-        $quiz = Quiz::where('is_active', true)->first();
-
-        if (!$quiz) {
+        if (!$quiz->is_active) {
             return redirect()->route('quiz.index')->with('error', 'Kuis tidak tersedia.');
         }
 
@@ -47,19 +47,28 @@ class QuizController extends Controller
             return redirect()->route('quiz.index')->with('error', 'Anda sudah bermain hari ini.');
         }
 
-        // Load questions with answers in random order
-        $quiz->load(['questions' => function ($query) {
-            $query->inRandomOrder()->with(['answers' => function ($q) {
+        if ($quiz->is_daily_quiz) {
+            // Kuis Harian: Ambil dari Master Bank Soal
+            $limit = $quiz->daily_question_limit ?: 10;
+            $questions = \App\Models\Question::inRandomOrder()->limit($limit)->with(['answers' => function ($q) {
                 $q->inRandomOrder();
+            }])->get();
+            $quiz->setRelation('questions', $questions);
+        } else {
+            // Event Quiz: Ambil dari Pivot Table
+            $quiz->load(['questions' => function ($query) {
+                $query->inRandomOrder()->with(['answers' => function ($q) {
+                    $q->inRandomOrder();
+                }]);
             }]);
-        }]);
+        }
 
         return Inertia::render('Petugas/Quiz/Play', [
             'quiz' => $quiz,
         ]);
     }
 
-    public function storeAttempt(Request $request)
+    public function storeAttempt(Request $request, Quiz $quiz)
     {
         $request->validate([
             'score' => 'required|integer',
@@ -67,9 +76,7 @@ class QuizController extends Controller
             'time_ms' => 'required|integer',
         ]);
 
-        $quiz = Quiz::where('is_active', true)->first();
-
-        if (!$quiz) {
+        if (!$quiz->is_active) {
             return redirect()->route('quiz.index')->with('error', 'Kuis tidak ditemukan.');
         }
 
