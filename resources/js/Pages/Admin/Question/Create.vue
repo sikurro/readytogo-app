@@ -267,7 +267,7 @@ const getAnswerLabel = (index) => {
                                         <input 
                                             type="text" 
                                             v-model="ans.answer_text"
-                                            :required="index < 2"
+                                            :required="index < 2 && !ans.answer_image"
                                             class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                                             placeholder="Teks opsi jawaban..."
                                         />

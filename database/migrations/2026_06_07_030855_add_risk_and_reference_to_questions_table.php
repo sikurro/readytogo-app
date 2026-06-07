@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('questions', function (Blueprint $table) {
-            //
+            $table->string('risk_level')->default('Low');
+            $table->string('reference')->nullable();
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('questions', function (Blueprint $table) {
-            //
+            $table->dropColumn(['risk_level', 'reference']);
         });
     }
 };
