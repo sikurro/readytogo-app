@@ -49,6 +49,55 @@ class QuestionController extends Controller
         return redirect()->back()->with('success', 'Bank soal berhasil diimpor.');
     }
 
+    public function create()
+    {
+        return Inertia::render('Admin/Question/Create', [
+            'categories' => Category::all()
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'question_text' => 'required|string',
+            'question_image' => 'nullable|image|max:2048',
+            'risk_level' => 'required|in:Low,Medium,High',
+            'reference' => 'nullable|string',
+            'categories' => 'required|array',
+            'categories.*' => 'exists:categories,id',
+            'answers' => 'required|array|min:2',
+            'answers.*.answer_text' => 'nullable|string',
+            'answers.*.answer_image' => 'nullable|image|max:2048',
+            'answers.*.is_correct' => 'required|boolean'
+        ]);
+
+        $data = $request->only(['question_text', 'risk_level', 'reference']);
+        if ($request->hasFile('question_image')) {
+            $path = $request->file('question_image')->store('questions', 'public');
+            $data['question_image'] = '/storage/' . $path;
+        }
+        
+        $question = Question::create($data);
+        
+        $question->categories()->attach($request->categories);
+
+        foreach ($request->answers as $ansData) {
+            $ansCreate = [
+                'answer_text' => $ansData['answer_text'] ?? null,
+                'is_correct' => $ansData['is_correct'],
+            ];
+            
+            if (isset($ansData['answer_image']) && $ansData['answer_image'] instanceof \Illuminate\Http\UploadedFile) {
+                $path = $ansData['answer_image']->store('answers', 'public');
+                $ansCreate['answer_image'] = '/storage/' . $path;
+            }
+            
+            $question->answers()->create($ansCreate);
+        }
+
+        return redirect()->back()->with('success', 'Soal berhasil ditambahkan!');
+    }
+
     public function edit(Question $question)
     {
         $question->load(['answers', 'categories']);
