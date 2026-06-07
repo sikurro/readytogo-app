@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('admin.quiz.history');
+    Route::get('/admin/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('admin.quiz.history.export');
 });
 
 require __DIR__.'/auth.php';

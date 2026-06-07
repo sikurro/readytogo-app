@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\QuizHistoryExport;
 use App\Http\Controllers\Controller;
 use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class QuizController extends Controller
 {
@@ -63,5 +65,28 @@ class QuizController extends Controller
                 'sort_direction' => $sortDirection,
             ],
         ]);
+    }
+
+    public function exportHistory(Request $request)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $search = $request->input('search');
+        $month = $request->input('month');
+        $sortField = $request->input('sort_field', 'tanggal');
+        $sortDirection = $request->input('sort_direction', 'desc');
+
+        $filename = 'riwayat-kuis';
+        if ($month) {
+            $filename .= '-' . $month;
+        }
+        $filename .= '-' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(
+            new QuizHistoryExport($search, $month, $sortField, $sortDirection),
+            $filename
+        );
     }
 }
