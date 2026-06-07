@@ -87,7 +87,12 @@ class QuizController extends Controller
         }
 
         if ($request->input('is_demo')) {
-            return redirect()->route('quiz.index')->with('success', 'Simulasi Kuis selesai! Skor Anda: ' . $request->score);
+            return redirect()->route('quiz.demo-summary', [
+                'quiz' => $quiz->id,
+                'score' => $request->score,
+                'correct_answers' => $request->correct_answers,
+                'time_ms' => $request->time_ms
+            ]);
         }
 
         $hasPlayedToday = QuizAttempt::where('user_id', Auth::id())
@@ -99,7 +104,7 @@ class QuizController extends Controller
             return redirect()->route('quiz.index')->with('error', 'Anda sudah bermain hari ini.');
         }
 
-        QuizAttempt::create([
+        $attempt = QuizAttempt::create([
             'user_id' => Auth::id(),
             'quiz_id' => $quiz->id,
             'score' => $request->score,
@@ -108,7 +113,57 @@ class QuizController extends Controller
             'month_year' => date('Y-m'),
         ]);
 
-        return redirect()->route('quiz.leaderboard')->with('success', 'Skor berhasil disimpan!');
+        return redirect()->route('quiz.summary', $attempt->id);
+    }
+
+    public function summary(QuizAttempt $attempt)
+    {
+        if ($attempt->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $attempt->load('quiz');
+        
+        $totalQuestions = $attempt->quiz->is_daily_quiz 
+            ? ($attempt->quiz->daily_question_limit ?: 10) 
+            : $attempt->quiz->questions()->count();
+            
+        $incorrectAnswers = $totalQuestions - $attempt->correct_answers;
+
+        return Inertia::render('Petugas/Quiz/Summary', [
+            'attempt' => $attempt,
+            'quiz' => $attempt->quiz,
+            'total_questions' => $totalQuestions,
+            'incorrect_answers' => max(0, $incorrectAnswers),
+            'is_demo' => false
+        ]);
+    }
+
+    public function demoSummary(Request $request, Quiz $quiz)
+    {
+        $score = $request->query('score', 0);
+        $correctAnswers = $request->query('correct_answers', 0);
+        $timeMs = $request->query('time_ms', 0);
+
+        $totalQuestions = $quiz->is_daily_quiz 
+            ? ($quiz->daily_question_limit ?: 10) 
+            : $quiz->questions()->count();
+            
+        $incorrectAnswers = $totalQuestions - $correctAnswers;
+
+        $attempt = [
+            'score' => (int)$score,
+            'correct_answers' => (int)$correctAnswers,
+            'time_ms' => (int)$timeMs,
+        ];
+
+        return Inertia::render('Petugas/Quiz/Summary', [
+            'attempt' => $attempt,
+            'quiz' => $quiz,
+            'total_questions' => $totalQuestions,
+            'incorrect_answers' => max(0, $incorrectAnswers),
+            'is_demo' => true
+        ]);
     }
 
     public function leaderboard()

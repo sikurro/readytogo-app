@@ -51,6 +51,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
     Route::get('/quiz/{quiz}/play', [QuizController::class, 'play'])->name('quiz.play');
     Route::post('/quiz/{quiz}/store', [QuizController::class, 'storeAttempt'])->name('quiz.store');
+    Route::get('/quiz/attempts/{attempt}/summary', [QuizController::class, 'summary'])->name('quiz.summary');
+    Route::get('/quiz/{quiz}/demo-summary', [QuizController::class, 'demoSummary'])->name('quiz.demo-summary');
     Route::get('/quiz/leaderboard', [QuizController::class, 'leaderboard'])->name('quiz.leaderboard');
     Route::get('/quiz/history', [QuizController::class, 'history'])->name('quiz.history');
 });
