@@ -52,6 +52,13 @@ defineProps({
                                 >
                                     Selesai Dikerjakan
                                 </button>
+
+                                <Link 
+                                    :href="route('quiz.play', { quiz: quiz.id, demo: 1 })"
+                                    class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg text-center shadow transition duration-150 ease-in-out block"
+                                >
+                                    Simulasi Kuis (Demo)
+                                </Link>
                             </div>
                         </div>
 

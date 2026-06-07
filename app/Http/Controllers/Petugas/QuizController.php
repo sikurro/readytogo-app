@@ -32,19 +32,23 @@ class QuizController extends Controller
         ]);
     }
 
-    public function play(Quiz $quiz)
+    public function play(Request $request, Quiz $quiz)
     {
         if (!$quiz->is_active) {
             return redirect()->route('quiz.index')->with('error', 'Kuis tidak tersedia.');
         }
 
-        $hasPlayedToday = QuizAttempt::where('user_id', Auth::id())
-            ->where('quiz_id', $quiz->id)
-            ->whereDate('created_at', today())
-            ->exists();
+        $isDemo = $request->query('demo') === '1';
 
-        if ($hasPlayedToday) {
-            return redirect()->route('quiz.index')->with('error', 'Anda sudah bermain hari ini.');
+        if (!$isDemo) {
+            $hasPlayedToday = QuizAttempt::where('user_id', Auth::id())
+                ->where('quiz_id', $quiz->id)
+                ->whereDate('created_at', today())
+                ->exists();
+
+            if ($hasPlayedToday) {
+                return redirect()->route('quiz.index')->with('error', 'Anda sudah bermain hari ini.');
+            }
         }
 
         if ($quiz->is_daily_quiz) {
@@ -65,6 +69,7 @@ class QuizController extends Controller
 
         return Inertia::render('Petugas/Quiz/Play', [
             'quiz' => $quiz,
+            'isDemo' => $isDemo,
         ]);
     }
 
@@ -74,10 +79,15 @@ class QuizController extends Controller
             'score' => 'required|integer',
             'correct_answers' => 'required|integer',
             'time_ms' => 'required|integer',
+            'is_demo' => 'nullable|boolean',
         ]);
 
         if (!$quiz->is_active) {
             return redirect()->route('quiz.index')->with('error', 'Kuis tidak ditemukan.');
+        }
+
+        if ($request->input('is_demo')) {
+            return redirect()->route('quiz.index')->with('success', 'Simulasi Kuis selesai! Skor Anda: ' . $request->score);
         }
 
         $hasPlayedToday = QuizAttempt::where('user_id', Auth::id())
