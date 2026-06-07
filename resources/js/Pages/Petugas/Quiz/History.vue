@@ -31,71 +31,89 @@ const formatDate = (dateString) => {
     <Head title="Riwayat Kuis" />
 
     <MobileAppLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Riwayat Kuis Saya</h2>
-        </template>
+        <div class="py-4">
+            <!-- Header Section -->
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-2xl font-black text-slate-100 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full"></span>
+                    Riwayat Kuis Saya
+                </h2>
+                
+                <Link 
+                    :href="route('quiz.index')" 
+                    class="flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 font-bold bg-slate-900 border border-slate-800 hover:bg-slate-800/80 px-3.5 py-2 rounded-xl transition-all duration-200 active:scale-95"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali
+                </Link>
+            </div>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    
-                    <div class="mb-6 flex justify-between items-center border-b border-gray-100 pb-4">
-                        <h3 class="text-2xl font-bold text-gray-900">Aktivitas Pengerjaan Kuis</h3>
-                        <Link :href="route('quiz.index')" class="text-blue-600 hover:text-blue-800 font-semibold">
-                            &larr; Kembali ke Kuis
-                        </Link>
+            <!-- Info Banner Bulan Berjalan (Dark Mode) -->
+            <div class="bg-slate-900 border border-slate-800 text-slate-300 rounded-2xl p-4 flex items-start gap-3 shadow-md mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-cyan-400 shrink-0 mt-0.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-xs leading-relaxed">
+                    <strong class="text-cyan-400">Catatan:</strong> Riwayat yang ditampilkan adalah aktivitas khusus untuk bulan berjalan (<span class="font-extrabold text-slate-100">{{ currentMonth }}</span>).
+                </span>
+            </div>
+
+            <!-- List Riwayat (Card-based Mobile Layout) -->
+            <div v-if="history && history.length > 0" class="space-y-4">
+                <div 
+                    v-for="attempt in history" 
+                    :key="attempt.id" 
+                    class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-lg hover:border-slate-700/80 transition-all duration-200"
+                >
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-base leading-snug">
+                                {{ attempt.quiz ? attempt.quiz.title : 'Kuis dihapus' }}
+                            </h3>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-1">
+                                {{ formatDate(attempt.created_at) }}
+                            </span>
+                        </div>
+                        
+                        <!-- Score badge -->
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Skor</span>
+                            <span class="text-xl font-black text-amber-500">{{ attempt.score }}</span>
+                        </div>
                     </div>
 
-                    <!-- Info Banner Bulan Berjalan -->
-                    <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                        </svg>
-                        <span><strong>Catatan:</strong> Riwayat yang ditampilkan di bawah ini adalah aktivitas khusus untuk bulan berjalan ({{ currentMonth }}).</span>
-                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800/60">
+                        <!-- Correct Answers -->
+                        <div class="flex items-center gap-2 bg-slate-950/40 px-3 py-2 rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-slate-400 font-medium leading-none">Benar</span>
+                                <span class="text-xs font-bold text-emerald-400 mt-0.5">{{ attempt.correct_answers }}</span>
+                            </div>
+                        </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white border border-gray-200">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
-                                    <th class="py-3 px-6 text-left">Tanggal</th>
-                                    <th class="py-3 px-6 text-left">Nama Kuis</th>
-                                    <th class="py-3 px-6 text-center">Skor</th>
-                                    <th class="py-3 px-6 text-center">Jawaban Benar</th>
-                                    <th class="py-3 px-6 text-center">Durasi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-600 text-sm font-light">
-                                <tr v-for="attempt in history" 
-                                    :key="attempt.id" 
-                                    class="border-b border-gray-200 hover:bg-gray-50"
-                                >
-                                    <td class="py-3 px-6 text-left whitespace-nowrap text-xs">
-                                        {{ formatDate(attempt.created_at) }}
-                                    </td>
-                                    <td class="py-3 px-6 text-left font-medium text-gray-900">
-                                        {{ attempt.quiz ? attempt.quiz.title : 'Kuis dihapus' }}
-                                    </td>
-                                    <td class="py-3 px-6 text-center font-bold text-gray-700">
-                                        {{ attempt.score }}
-                                    </td>
-                                    <td class="py-3 px-6 text-center font-semibold text-green-600">
-                                        {{ attempt.correct_answers }}
-                                    </td>
-                                    <td class="py-3 px-6 text-center whitespace-nowrap">
-                                        {{ formatTime(attempt.time_ms) }}
-                                    </td>
-                                </tr>
-                                
-                                <tr v-if="history.length === 0">
-                                    <td colspan="5" class="py-6 text-center text-gray-500">
-                                        Anda belum pernah mengerjakan kuis.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <!-- Duration -->
+                        <div class="flex items-center gap-2 bg-slate-950/40 px-3 py-2 rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-slate-400 font-medium leading-none">Durasi</span>
+                                <span class="text-xs font-bold text-slate-200 mt-0.5">{{ formatTime(attempt.time_ms) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-12 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6">
+                <div class="text-4xl mb-3">📊</div>
+                <p class="text-slate-500 text-sm font-medium">Anda belum pernah mengerjakan kuis bulan ini.</p>
             </div>
         </div>
     </MobileAppLayout>
