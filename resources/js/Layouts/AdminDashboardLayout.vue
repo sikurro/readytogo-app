@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import Toast from '@/Components/Toast.vue';
 
 defineProps({
     title: String,
@@ -131,5 +132,6 @@ const logout = () => {
                 </div>
             </main>
         </div>
+        <Toast />
     </div>
 </template>
