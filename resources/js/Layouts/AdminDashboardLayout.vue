@@ -125,3 +125,20 @@ const logout = () => {
         </div>
     </div>
 </template>
+                    <slot name="header" />
+                </h2>
+                
+                <div class="flex items-center gap-4">
+                    <span class="text-xs text-slate-400">Status Database: <span class="text-emerald-400 font-semibold">Online</span></span>
+                </div>
+            </header>
+
+            <!-- Slot -->
+            <main class="flex-1 overflow-y-auto p-6 bg-slate-950/20">
+                <div class="max-w-7xl mx-auto">
+                    <slot />
+                </div>
+            </main>
+        </div>
+    </div>
+</template>
