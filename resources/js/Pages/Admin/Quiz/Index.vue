@@ -43,7 +43,7 @@ const deleteQuiz = (id) => {
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                                 <th class="py-3 px-4">Judul Kuis</th>
                                 <th class="py-3 px-4 text-center">Tipe</th>
-                                <th class="py-3 px-4">Tema / Topik</th>
+                                <th class="py-3 px-4">Tema</th>
                                 <th class="py-3 px-4 text-center">Durasi / Limit Soal</th>
                                 <th class="py-3 px-4 text-center">Status</th>
                                 <th class="py-3 px-4 text-right">Aksi</th>
@@ -64,7 +64,6 @@ const deleteQuiz = (id) => {
                                 </td>
                                 <td class="py-4 px-4">
                                     <span class="text-slate-300 font-medium">{{ quiz.theme }}</span>
-                                    <div v-if="quiz.topic" class="text-xs text-slate-500 mt-0.5">{{ quiz.topic.name }}</div>
                                 </td>
                                 <td class="py-4 px-4 text-center whitespace-nowrap">
                                     <div class="text-slate-300">{{ quiz.duration_minutes }} Menit</div>

@@ -2,14 +2,9 @@
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({
-    topics: Array,
-});
-
 const form = useForm({
     title: '',
     theme: '',
-    topic_id: '',
     duration_minutes: 30,
     is_active: true,
     is_daily_quiz: false,
@@ -113,18 +108,6 @@ const submit = () => {
                     <InputError :message="form.errors.theme" class="mt-1" />
                 </div>
 
-                <!-- Topic Selector -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-300">Topik (Opsional)</label>
-                    <select 
-                        v-model="form.topic_id" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
-                    >
-                        <option value="">Pilih Topik</option>
-                        <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
-                    </select>
-                    <InputError :message="form.errors.topic_id" class="mt-1" />
-                </div>
 
                 <!-- Duration Input -->
                 <div class="space-y-2">
