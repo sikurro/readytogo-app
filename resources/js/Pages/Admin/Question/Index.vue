@@ -14,11 +14,13 @@ const props = defineProps({
 
 const category_id = ref(props.filters?.category_id || '');
 const risk_level = ref(props.filters?.risk_level || '');
+const per_page = ref(props.filters?.per_page || '10');
 
 const handleSearch = () => {
     router.get(route('admin.questions.index'), {
         category_id: category_id.value,
         risk_level: risk_level.value,
+        per_page: per_page.value,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -27,7 +29,7 @@ const handleSearch = () => {
 };
 
 // Auto search on filter change
-watch([category_id, risk_level], () => {
+watch([category_id, risk_level, per_page], () => {
     handleSearch();
 });
 
@@ -137,6 +139,15 @@ const deleteQuestion = () => {
                             <option value="Low">Low</option>
                             <option value="Medium">Medium</option>
                             <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 relative">
+                        <select v-model="per_page" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="10">10 Soal</option>
+                            <option value="15">15 Soal</option>
+                            <option value="25">25 Soal</option>
+                            <option value="50">50 Soal</option>
+                            <option value="100">100 Soal</option>
                         </select>
                     </div>
                 </div>

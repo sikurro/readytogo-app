@@ -30,13 +30,18 @@ class QuestionController extends Controller
             $query->where('risk_level', $request->risk_level);
         }
 
-        $questions = $query->latest()->paginate(15)->withQueryString();
+        $perPage = $request->input('per_page', 10);
+        if (!in_array($perPage, [10, 15, 25, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $questions = $query->latest()->paginate($perPage)->withQueryString();
         $categories = Category::all();
 
         return Inertia::render('Admin/Question/Index', [
             'questions' => $questions,
             'categories' => $categories,
-            'filters' => $request->only(['category_id', 'risk_level']),
+            'filters' => $request->only(['category_id', 'risk_level', 'per_page']),
         ]);
     }
 
