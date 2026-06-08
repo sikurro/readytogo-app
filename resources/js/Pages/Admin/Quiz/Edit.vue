@@ -24,81 +24,150 @@ const submit = () => {
 
 <template>
     <AdminDashboardLayout>
-        <Head title="Edit Kuis" />
+        <Head title="Edit Kuis - Admin" />
 
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Edit Kuis</h2>
-                <Link :href="route('admin.quizzes.index')" class="text-sm text-gray-600 hover:text-gray-900">
-                    &larr; Kembali
-                </Link>
-            </div>
+            <span>Edit Kuis</span>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <form @submit.prevent="submit" class="space-y-6">
-                        
-                        <div class="p-4 bg-purple-50 rounded-lg border border-purple-100 flex items-start gap-4">
-                            <div class="pt-1">
-                                <input v-model="form.is_daily_quiz" id="is_daily_quiz" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-                            </div>
-                            <div>
-                                <label for="is_daily_quiz" class="block text-base font-bold text-purple-900">Jadikan sebagai Kuis Harian</label>
-                                <p class="text-sm text-purple-700 mt-1">Jika dicentang, kuis ini akan menarik soal secara otomatis dan acak dari Master Bank Soal setiap kali dimainkan oleh Petugas. Anda tidak perlu memilih soal secara manual.</p>
-                            </div>
-                        </div>
-
-                        <div v-if="form.is_daily_quiz" class="p-4 bg-white border border-purple-200 rounded-lg shadow-sm">
-                            <label class="block text-sm font-medium text-gray-700">Batas Jumlah Soal Acak yang Dimunculkan</label>
-                            <input v-model="form.daily_question_limit" type="number" min="1" class="mt-1 block w-48 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm" required />
-                            <p class="text-xs text-gray-500 mt-1">Contoh: 10. Maka sistem akan mengambil 10 soal acak dari Bank Soal.</p>
-                            <div v-if="form.errors.daily_question_limit" class="text-red-500 text-sm mt-1">{{ form.errors.daily_question_limit }}</div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Judul Kuis</label>
-                            <input v-model="form.title" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required />
-                            <div v-if="form.errors.title" class="text-red-500 text-sm mt-1">{{ form.errors.title }}</div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Tema</label>
-                            <input v-model="form.theme" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required />
-                            <div v-if="form.errors.theme" class="text-red-500 text-sm mt-1">{{ form.errors.theme }}</div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Topik (Opsional)</label>
-                            <select v-model="form.topic_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                <option value="">Pilih Topik</option>
-                                <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
-                            </select>
-                            <div v-if="form.errors.topic_id" class="text-red-500 text-sm mt-1">{{ form.errors.topic_id }}</div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Durasi Pengerjaan (Menit)</label>
-                            <input v-model="form.duration_minutes" type="number" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required />
-                            <div v-if="form.errors.duration_minutes" class="text-red-500 text-sm mt-1">{{ form.errors.duration_minutes }}</div>
-                        </div>
-
-                        <div class="flex items-center">
-                            <input v-model="form.is_active" id="is_active" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                            <label for="is_active" class="ml-2 block text-sm text-gray-900">Aktif (Bisa dikerjakan petugas)</label>
-                        </div>
-
-                        <div class="flex justify-end gap-3 pt-4">
-                            <Link :href="route('admin.quizzes.index')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Batal</Link>
-                            <button type="submit" :disabled="form.processing" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-                                Simpan Perubahan
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="flex items-center justify-between">
+                <Link 
+                    :href="route('admin.quizzes.index')" 
+                    class="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors duration-200 text-sm font-medium"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali ke Daftar Kuis
+                </Link>
             </div>
+
+            <form @submit.prevent="submit" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                <!-- Form Header -->
+                <div class="border-b border-slate-800 pb-4">
+                    <h3 class="text-lg font-bold text-slate-200">Formulir Edit Kuis</h3>
+                    <p class="text-sm text-slate-400">Silakan perbarui detail kuis pada formulir di bawah ini.</p>
+                </div>
+
+                <!-- Errors list if any -->
+                <div v-if="Object.keys(form.errors).length > 0" class="p-4 bg-rose-950/40 border border-rose-800/50 rounded-xl text-sm text-rose-400 space-y-1">
+                    <p class="font-semibold">Mohon perbaiki kesalahan berikut:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                    </ul>
+                </div>
+
+                <!-- Kuis Harian Toggle Option -->
+                <div class="p-5 bg-purple-950/20 border border-purple-900/40 rounded-xl flex items-start gap-4">
+                    <div class="pt-0.5">
+                        <input 
+                            v-model="form.is_daily_quiz" 
+                            id="is_daily_quiz" 
+                            type="checkbox" 
+                            class="h-5 w-5 rounded border-slate-700 bg-slate-950 text-purple-600 focus:ring-purple-500 focus:ring-offset-slate-900 cursor-pointer" 
+                        />
+                    </div>
+                    <div>
+                        <label for="is_daily_quiz" class="block text-base font-bold text-purple-400 cursor-pointer">Jadikan sebagai Kuis Harian</label>
+                        <p class="text-sm text-slate-400 mt-1">Jika dicentang, kuis ini akan menarik soal secara otomatis dan acak dari Master Bank Soal setiap kali dimainkan oleh Petugas. Anda tidak perlu memilih soal secara manual.</p>
+                    </div>
+                </div>
+
+                <!-- Daily Question Limit Input (shows only if daily quiz is active) -->
+                <div v-if="form.is_daily_quiz" class="p-5 bg-slate-950/40 border border-slate-800 rounded-xl space-y-2">
+                    <label class="block text-sm font-semibold text-slate-300">Batas Jumlah Soal Acak yang Dimunculkan</label>
+                    <input 
+                        v-model="form.daily_question_limit" 
+                        type="number" 
+                        min="1" 
+                        required
+                        class="block w-48 bg-slate-950 border border-slate-800 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors" 
+                    />
+                    <p class="text-xs text-slate-500">Contoh: 10. Maka sistem akan mengambil 10 soal acak dari Master Bank Soal.</p>
+                    <InputError :message="form.errors.daily_question_limit" class="mt-1" />
+                </div>
+
+                <!-- Title Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-300">Judul Kuis</label>
+                    <input 
+                        v-model="form.title" 
+                        type="text" 
+                        required
+                        placeholder="Contoh: Kuis Harian: Alat Keselamatan Kerja"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    />
+                    <InputError :message="form.errors.title" class="mt-1" />
+                </div>
+
+                <!-- Theme Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-300">Tema</label>
+                    <input 
+                        v-model="form.theme" 
+                        type="text" 
+                        required
+                        placeholder="Contoh: K3 Pelabuhan & APAR"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    />
+                    <InputError :message="form.errors.theme" class="mt-1" />
+                </div>
+
+                <!-- Topic Selector -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-300">Topik (Opsional)</label>
+                    <select 
+                        v-model="form.topic_id" 
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    >
+                        <option value="">Pilih Topik</option>
+                        <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
+                    </select>
+                    <InputError :message="form.errors.topic_id" class="mt-1" />
+                </div>
+
+                <!-- Duration Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-300">Durasi Pengerjaan (Menit)</label>
+                    <input 
+                        v-model="form.duration_minutes" 
+                        type="number" 
+                        min="1" 
+                        required
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    />
+                    <InputError :message="form.errors.duration_minutes" class="mt-1" />
+                </div>
+
+                <!-- Active Toggle Option -->
+                <div class="flex items-center gap-3">
+                    <input 
+                        v-model="form.is_active" 
+                        id="is_active" 
+                        type="checkbox" 
+                        class="h-5 w-5 rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer" 
+                    />
+                    <label for="is_active" class="text-sm font-semibold text-slate-300 cursor-pointer">Aktif (Bisa dikerjakan petugas)</label>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <Link 
+                        :href="route('admin.quizzes.index')" 
+                        class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg font-medium text-sm transition-colors"
+                    >
+                        Batal
+                    </Link>
+                    <button 
+                        type="submit" 
+                        :disabled="form.processing" 
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold text-sm transition-colors shadow-lg shadow-blue-900/30 disabled:opacity-50"
+                    >
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
         </div>
     </AdminDashboardLayout>
 </template>

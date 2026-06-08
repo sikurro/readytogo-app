@@ -1,6 +1,7 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import Pagination from '@/Components/Pagination.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 const props = defineProps({
@@ -11,19 +12,24 @@ const props = defineProps({
     filters: Object,
 });
 
-const searchForm = useForm({
-    category_id: props.filters.category_id || '',
-    risk_level: props.filters.risk_level || '',
-});
+const category_id = ref(props.filters.category_id || '');
+const risk_level = ref(props.filters.risk_level || '');
 
 const handleSearch = () => {
-    searchForm.get(route('admin.quizzes.show', props.quiz.id), {
-        preserveState: true,
-        preserveScroll: true,
+    // Gunakan router langsung untuk performa pencarian/filter
+    import('@inertiajs/vue3').then(({ router }) => {
+        router.get(route('admin.quizzes.show', props.quiz.id), {
+            category_id: category_id.value,
+            risk_level: risk_level.value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true
+        });
     });
 };
 
-watch(() => [searchForm.category_id, searchForm.risk_level], () => {
+watch([category_id, risk_level], () => {
     handleSearch();
 });
 
@@ -47,105 +53,128 @@ const toggleQuestion = (questionId, isAttached) => {
         <Head :title="`Kelola Soal - ${quiz.title}`" />
 
         <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pilih Soal untuk Kuis Event</h2>
-                    <p class="text-sm text-gray-500 mt-1">Kuis: {{ quiz.title }} ({{ attachedQuestionIds.length }} Soal Terpilih)</p>
-                </div>
-                <Link :href="route('admin.quizzes.index')" class="text-sm text-gray-600 hover:text-gray-900">
-                    &larr; Kembali ke Daftar Kuis
-                </Link>
-            </div>
+            <span>Pilih Soal untuk Kuis Event</span>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                
-                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-blue-700">
-                                Centang kotak di kolom aksi untuk menambahkan soal dari Master Bank Soal ke dalam Kuis Event ini.
-                            </p>
-                        </div>
-                    </div>
+        <div class="space-y-6">
+            <!-- Header Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-200">Kuis: {{ quiz.title }}</h3>
+                    <p class="text-sm text-slate-400 mt-1">Status Kuis Event ini memiliki <span class="font-bold text-indigo-400">{{ attachedQuestionIds.length }}</span> Soal Terpilih</p>
+                </div>
+                <Link 
+                    :href="route('admin.quizzes.index')" 
+                    class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-sm font-medium transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali ke Daftar Kuis
+                </Link>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="bg-blue-950/20 border border-blue-900/40 p-4 rounded-xl flex items-start gap-3">
+                <div class="pt-0.5 text-blue-400">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.085 1.086L12 13.5m0-6H12v.008h-.008V7.5zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM12 21a9 9 0 100-18 9 9 0 000 18z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-300">
+                        Centang kotak di kolom paling kiri untuk menautkan/memasukkan soal dari Master Bank Soal ke dalam Kuis Event ini. Pengubahan akan disimpan secara otomatis saat dicentang.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-col md:flex-row md:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                <div class="flex-1 relative">
+                    <select v-model="category_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                        <option value="">Semua Kategori</option>
+                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                    </select>
+                </div>
+                <div class="flex-1 relative">
+                    <select v-model="risk_level" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                        <option value="">Semua Level Resiko</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-slate-300">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <th class="py-3 px-4 text-center w-24">Pilih</th>
+                                <th class="py-3 px-4">Pertanyaan</th>
+                                <th class="py-3 px-4">Kategori</th>
+                                <th class="py-3 px-4 text-center w-28">Resiko</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-sm">
+                            <tr 
+                                v-for="q in bankQuestions.data" 
+                                :key="q.id" 
+                                class="transition-colors duration-150"
+                                :class="attachedQuestionIds.includes(q.id) 
+                                    ? 'bg-indigo-950/20 hover:bg-indigo-950/35 border-l-2 border-indigo-500' 
+                                    : 'hover:bg-slate-800/30'"
+                            >
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <input 
+                                        type="checkbox" 
+                                        :checked="attachedQuestionIds.includes(q.id)"
+                                        @change="toggleQuestion(q.id, attachedQuestionIds.includes(q.id))"
+                                        class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 bg-slate-950 border-slate-700 rounded cursor-pointer focus:ring-offset-slate-900"
+                                    />
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="font-medium text-slate-200 line-clamp-2 max-w-xl">{{ q.question_text }}</div>
+                                    <span v-if="q.question_image" class="inline-flex mt-1.5 items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
+                                        Ada Gambar
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span v-for="cat in q.categories" :key="cat.id" class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300">{{ cat.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border"
+                                          :class="{
+                                              'bg-emerald-900/30 text-emerald-400 border-emerald-800/50': q.risk_level === 'Low',
+                                              'bg-amber-900/30 text-amber-400 border-amber-800/50': q.risk_level === 'Medium',
+                                              'bg-rose-900/30 text-rose-400 border-rose-800/50': q.risk_level === 'High'
+                                          }">
+                                        {{ q.risk_level }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr v-if="bankQuestions.data.length === 0">
+                                <td colspan="4" class="py-8 text-center text-slate-500">Belum ada soal di Master Bank yang sesuai filter.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- Filters -->
-                <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex gap-4">
-                    <div class="flex-1">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Filter Kategori</label>
-                        <select v-model="searchForm.category_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="">Semua Kategori</option>
-                            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                        </select>
+                <!-- Pagination Section -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-slate-800 pt-6" v-if="bankQuestions.data.length > 0">
+                    <div class="text-sm text-slate-400">
+                        Menampilkan 
+                        <span class="font-medium text-slate-300">{{ bankQuestions.from }}</span> 
+                        sampai 
+                        <span class="font-medium text-slate-300">{{ bankQuestions.to }}</span> 
+                        dari 
+                        <span class="font-medium text-slate-300">{{ bankQuestions.total }}</span> soal
                     </div>
-                    <div class="flex-1">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Level Resiko</label>
-                        <select v-model="searchForm.risk_level" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="">Semua Level</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Data Table -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi (Pilih)</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertanyaan</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resiko</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="q in bankQuestions.data" :key="q.id" :class="attachedQuestionIds.includes(q.id) ? 'bg-indigo-50' : ''">
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <input 
-                                            type="checkbox" 
-                                            :checked="attachedQuestionIds.includes(q.id)"
-                                            @change="toggleQuestion(q.id, attachedQuestionIds.includes(q.id))"
-                                            class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900 line-clamp-2 max-w-md">{{ q.question_text }}</div>
-                                        <span v-if="q.question_image" class="inline-flex mt-1 items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                            Ada Gambar
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        <div class="flex flex-wrap gap-1">
-                                            <span v-for="cat in q.categories" :key="cat.id" class="px-2 py-1 bg-gray-100 border rounded text-xs">{{ cat.name }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                              :class="{
-                                                  'bg-green-100 text-green-800': q.risk_level === 'Low',
-                                                  'bg-yellow-100 text-yellow-800': q.risk_level === 'Medium',
-                                                  'bg-red-100 text-red-800': q.risk_level === 'High'
-                                              }">
-                                            {{ q.risk_level }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr v-if="bankQuestions.data.length === 0">
-                                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">Belum ada soal di Master Bank yang sesuai filter.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <Pagination :links="bankQuestions.links" />
                 </div>
             </div>
         </div>

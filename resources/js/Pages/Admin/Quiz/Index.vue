@@ -15,66 +15,111 @@ const deleteQuiz = (id) => {
 
 <template>
     <AdminDashboardLayout>
-        <Head title="Kelola Kuis" />
+        <Head title="Kelola Kuis - Admin" />
 
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Kelola Kuis & Event</h2>
-                <Link :href="route('admin.quizzes.create')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">
-                    + Tambah Kuis Baru
-                </Link>
-            </div>
+            <span>Kelola Kuis & Event</span>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Kuis</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tema / Topik</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi / Limit Soal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="quiz in quizzes.data" :key="quiz.id">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ quiz.title }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <span v-if="quiz.is_daily_quiz" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Kuis Harian</span>
-                                        <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Event Quiz</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ quiz.theme }}
-                                        <div v-if="quiz.topic" class="text-xs text-gray-400 mt-1">{{ quiz.topic.name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div>{{ quiz.duration_minutes }} Menit</div>
-                                        <div v-if="quiz.is_daily_quiz" class="text-xs text-purple-600 mt-1">Limit: {{ quiz.daily_question_limit }} Soal Acak</div>
-                                        <div v-else class="text-xs text-gray-400 mt-1">{{ quiz.questions_count }} Soal Terpilih</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                              :class="quiz.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                                            {{ quiz.is_active ? 'Aktif' : 'Nonaktif' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link :href="route('admin.quizzes.show', quiz.id)" class="text-blue-600 hover:text-blue-900 mr-3">Kelola Soal</Link>
-                                        <Link :href="route('admin.quizzes.edit', quiz.id)" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</Link>
-                                        <button @click="deleteQuiz(quiz.id)" class="text-red-600 hover:text-red-900">Hapus</button>
-                                    </td>
-                                </tr>
-                                <tr v-if="quizzes.data.length === 0">
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Belum ada data kuis.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+        <div class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-slate-200">Daftar Kuis Tersedia</h3>
+                    <Link 
+                        :href="route('admin.quizzes.create')"
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg transition-colors duration-200 shadow-lg shadow-blue-900/30"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Tambah Kuis Baru
+                    </Link>
+                </div>
+
+                <!-- Data Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-slate-300">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <th class="py-3 px-4">Judul Kuis</th>
+                                <th class="py-3 px-4 text-center">Tipe</th>
+                                <th class="py-3 px-4">Tema / Topik</th>
+                                <th class="py-3 px-4 text-center">Durasi / Limit Soal</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-sm">
+                            <tr v-for="quiz in quizzes.data" :key="quiz.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                                <td class="py-4 px-4 font-medium text-slate-200">
+                                    {{ quiz.title }}
+                                </td>
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <span v-if="quiz.is_daily_quiz" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-900/30 text-purple-400 border border-purple-800/30">
+                                        Kuis Harian
+                                    </span>
+                                    <span v-else class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                                        Event Quiz
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="text-slate-300 font-medium">{{ quiz.theme }}</span>
+                                    <div v-if="quiz.topic" class="text-xs text-slate-500 mt-0.5">{{ quiz.topic.name }}</div>
+                                </td>
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <div class="text-slate-300">{{ quiz.duration_minutes }} Menit</div>
+                                    <div v-if="quiz.is_daily_quiz" class="text-xs text-purple-400 font-medium mt-0.5">Limit: {{ quiz.daily_question_limit }} Soal Acak</div>
+                                    <div v-else class="text-xs text-slate-500 mt-0.5">{{ quiz.questions_count }} Soal Terpilih</div>
+                                </td>
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border"
+                                          :class="quiz.is_active 
+                                              ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50' 
+                                              : 'bg-rose-900/30 text-rose-400 border-rose-800/50'">
+                                        {{ quiz.is_active ? 'Aktif' : 'Nonaktif' }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4 text-right whitespace-nowrap">
+                                    <div class="flex items-center justify-end gap-4">
+                                        <!-- Kelola Soal (tidak perlu untuk Kuis Harian) -->
+                                        <Link 
+                                            v-if="!quiz.is_daily_quiz" 
+                                            :href="route('admin.quizzes.show', quiz.id)" 
+                                            class="text-blue-400 hover:text-blue-300 transition-colors" 
+                                            title="Kelola Soal"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-3.75 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                            </svg>
+                                        </Link>
+                                        <span v-else class="w-5 h-5 block" title="Kuis harian otomatis acak dari bank soal"></span>
+
+                                        <Link 
+                                            :href="route('admin.quizzes.edit', quiz.id)" 
+                                            class="text-indigo-400 hover:text-indigo-300 transition-colors" 
+                                            title="Edit"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                            </svg>
+                                        </Link>
+                                        <button 
+                                            @click="deleteQuiz(quiz.id)" 
+                                            class="text-rose-500 hover:text-rose-400 transition-colors" 
+                                            title="Hapus"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr v-if="quizzes.data.length === 0">
+                                <td colspan="6" class="py-8 text-center text-slate-500">Belum ada data kuis.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
