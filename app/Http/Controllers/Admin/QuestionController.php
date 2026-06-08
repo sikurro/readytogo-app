@@ -11,6 +11,8 @@ use App\Models\Answer;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\QuestionImport;
+use App\Exports\QuestionTemplateExport;
+use App\Exports\QuestionExport;
 
 class QuestionController extends Controller
 {
@@ -47,6 +49,16 @@ class QuestionController extends Controller
         Excel::import(new QuestionImport, $request->file('file'));
 
         return redirect()->back()->with('success', 'Bank soal berhasil diimpor.');
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new QuestionTemplateExport, 'template_import_soal.xlsx');
+    }
+
+    public function export()
+    {
+        return Excel::download(new QuestionExport, 'data_bank_soal.xlsx');
     }
 
     public function create()
