@@ -12,12 +12,14 @@ const props = defineProps({
     filters: Object,
 });
 
+const search = ref(props.filters?.search || '');
 const category_id = ref(props.filters?.category_id || '');
 const risk_level = ref(props.filters?.risk_level || '');
 const per_page = ref(props.filters?.per_page || '10');
 
 const handleSearch = () => {
     router.get(route('admin.questions.index'), {
+        search: search.value,
         category_id: category_id.value,
         risk_level: risk_level.value,
         per_page: per_page.value,
@@ -29,7 +31,7 @@ const handleSearch = () => {
 };
 
 // Auto search on filter change
-watch([category_id, risk_level, per_page], () => {
+watch([search, category_id, risk_level, per_page], () => {
     handleSearch();
 });
 
@@ -127,13 +129,21 @@ const deleteQuestion = () => {
 
                 <!-- Filters -->
                 <div class="flex flex-col md:flex-row md:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
-                    <div class="flex-1 relative">
+                    <div class="flex-1 relative min-w-[200px]">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-slate-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                        <input v-model="search" type="text" placeholder="Cari pertanyaan..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
+                    </div>
+                    <div class="w-full md:w-48 relative">
                         <select v-model="category_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
                             <option value="">Semua Kategori</option>
                             <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
                         </select>
                     </div>
-                    <div class="flex-1 relative">
+                    <div class="w-full md:w-48 relative">
                         <select v-model="risk_level" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
                             <option value="">Semua Level Resiko</option>
                             <option value="Low">Low</option>
