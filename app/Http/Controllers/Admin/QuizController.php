@@ -10,14 +10,13 @@ use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Quiz;
-use App\Models\Topic;
 use App\Models\Question;
 
 class QuizController extends Controller
 {
     public function index()
     {
-        $quizzes = Quiz::withCount('questions')->with('topic')->latest()->paginate(10);
+        $quizzes = Quiz::withCount('questions')->latest()->paginate(10);
         return Inertia::render('Admin/Quiz/Index', [
             'quizzes' => $quizzes
         ]);
@@ -25,9 +24,7 @@ class QuizController extends Controller
 
     public function create()
     {
-        return Inertia::render('Admin/Quiz/Create', [
-            'topics' => Topic::all()
-        ]);
+        return Inertia::render('Admin/Quiz/Create');
     }
 
     public function store(Request $request)
@@ -35,7 +32,6 @@ class QuizController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'theme' => 'required|string|max:255',
-            'topic_id' => 'nullable|exists:topics,id',
             'duration_minutes' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'is_daily_quiz' => 'boolean',
@@ -49,8 +45,7 @@ class QuizController extends Controller
     public function edit(Quiz $quiz)
     {
         return Inertia::render('Admin/Quiz/Edit', [
-            'quiz' => $quiz,
-            'topics' => Topic::all()
+            'quiz' => $quiz
         ]);
     }
 
@@ -59,7 +54,6 @@ class QuizController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'theme' => 'required|string|max:255',
-            'topic_id' => 'nullable|exists:topics,id',
             'duration_minutes' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'is_daily_quiz' => 'boolean',
