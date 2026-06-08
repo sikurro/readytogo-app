@@ -1,6 +1,7 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
@@ -198,6 +199,19 @@ const deleteQuestion = () => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Section -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-slate-800 pt-6" v-if="questions.data.length > 0">
+                    <div class="text-sm text-slate-400">
+                        Menampilkan 
+                        <span class="font-medium text-slate-300">{{ questions.from }}</span> 
+                        sampai 
+                        <span class="font-medium text-slate-300">{{ questions.to }}</span> 
+                        dari 
+                        <span class="font-medium text-slate-300">{{ questions.total }}</span> soal
+                    </div>
+                    <Pagination :links="questions.links" />
                 </div>
             </div>
         </div>
