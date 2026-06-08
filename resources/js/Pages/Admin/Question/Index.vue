@@ -157,6 +157,7 @@ const deleteQuestion = () => {
                     <table class="min-w-full text-slate-300">
                         <thead>
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <th class="py-3 px-4 text-center w-12">No</th>
                                 <th class="py-3 px-4">Pertanyaan</th>
                                 <th class="py-3 px-4">Kategori</th>
                                 <th class="py-3 px-4 text-center">Resiko</th>
@@ -165,7 +166,10 @@ const deleteQuestion = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr v-for="q in questions.data" :key="q.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                            <tr v-for="(q, index) in questions.data" :key="q.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                                <td class="py-3 px-4 text-center font-medium text-slate-400">
+                                    {{ questions.from + index }}
+                                </td>
                                 <td class="py-3 px-4 font-medium text-slate-200">
                                     <div class="line-clamp-2 max-w-md">{{ q.question_text }}</div>
                                     <span v-if="q.question_image" class="inline-flex mt-1 items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
@@ -206,7 +210,7 @@ const deleteQuestion = () => {
                                 </td>
                             </tr>
                             <tr v-if="questions.data.length === 0">
-                                <td colspan="5" class="py-8 text-center text-slate-500">Belum ada soal di Master Bank.</td>
+                                <td colspan="6" class="py-8 text-center text-slate-500">Belum ada soal di Master Bank.</td>
                             </tr>
                         </tbody>
                     </table>
