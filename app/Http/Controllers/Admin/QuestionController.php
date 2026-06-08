@@ -20,6 +20,10 @@ class QuestionController extends Controller
     {
         $query = Question::with('categories')->withCount('quizzes');
         
+        if ($request->filled('search')) {
+            $query->where('question_text', 'like', '%' . $request->search . '%');
+        }
+        
         if ($request->filled('category_id')) {
             $query->whereHas('categories', function($q) use ($request) {
                 $q->where('category_question.category_id', $request->category_id);
@@ -41,7 +45,7 @@ class QuestionController extends Controller
         return Inertia::render('Admin/Question/Index', [
             'questions' => $questions,
             'categories' => $categories,
-            'filters' => $request->only(['category_id', 'risk_level', 'per_page']),
+            'filters' => $request->only(['search', 'category_id', 'risk_level', 'per_page']),
         ]);
     }
 
