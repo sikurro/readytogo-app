@@ -205,7 +205,7 @@ const deleteQuestion = () => {
         <!-- Upload Modal -->
         <div v-if="isUploadModalOpen" class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="isUploadModalOpen = false"></div>
+                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="!uploadForm.processing && (isUploadModalOpen = false)"></div>
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div class="inline-block align-bottom bg-slate-900 border border-slate-700 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                     <form @submit.prevent="submitUpload">
@@ -214,16 +214,29 @@ const deleteQuestion = () => {
                             <div class="mt-2">
                                 <p class="text-sm text-slate-400">Unggah file template (Excel/CSV) untuk menambahkan banyak soal sekaligus ke Master Bank Soal.</p>
                                 <div class="mt-6">
-                                    <input type="file" @change="e => uploadForm.file = e.target.files[0]" accept=".csv,.xlsx,.xls" required class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-colors" />
+                                    <input type="file" @change="e => uploadForm.file = e.target.files[0]" accept=".csv,.xlsx,.xls" :disabled="uploadForm.processing" required class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed" />
                                 </div>
                                 <div v-if="uploadForm.errors.file" class="text-rose-500 text-sm mt-2">{{ uploadForm.errors.file }}</div>
+
+                                <!-- Progress & Processing States -->
+                                <div v-if="uploadForm.progress" class="w-full bg-slate-800 rounded-full h-2.5 mt-4">
+                                    <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-150" :style="{ width: uploadForm.progress.percentage + '%' }"></div>
+                                    <p class="text-xs text-slate-400 mt-1.5 text-right">Mengunggah: {{ uploadForm.progress.percentage }}%</p>
+                                </div>
+                                <div v-if="uploadForm.processing" class="flex items-center justify-center gap-3 mt-4 p-3 bg-slate-800/40 rounded-xl border border-slate-700/50 animate-pulse">
+                                    <svg class="animate-spin h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="text-sm text-slate-300 font-medium">Sedang memproses & mengimpor soal...</span>
+                                </div>
                             </div>
                         </div>
                         <div class="bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-800">
                             <button type="submit" :disabled="uploadForm.processing" class="inline-flex justify-center rounded-lg border border-transparent px-4 py-2 bg-blue-600 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none transition-colors disabled:opacity-50">
-                                Upload & Proses
+                                {{ uploadForm.processing ? 'Memproses...' : 'Upload & Proses' }}
                             </button>
-                            <button type="button" @click="isUploadModalOpen = false" class="inline-flex justify-center rounded-lg border border-slate-700 px-4 py-2 bg-slate-800 text-sm font-semibold text-slate-300 hover:bg-slate-700 focus:outline-none transition-colors">
+                            <button type="button" @click="isUploadModalOpen = false" :disabled="uploadForm.processing" class="inline-flex justify-center rounded-lg border border-slate-700 px-4 py-2 bg-slate-800 text-sm font-semibold text-slate-300 hover:bg-slate-700 focus:outline-none transition-colors disabled:opacity-50">
                                 Batal
                             </button>
                         </div>

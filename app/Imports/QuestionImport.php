@@ -19,10 +19,17 @@ class QuestionImport implements ToCollection, WithHeadingRow
                 continue; // Skip invalid rows
             }
 
+            // Normalize risk_level (e.g. low -> Low, HIGH -> High)
+            $riskInput = isset($row['level_resiko']) ? trim($row['level_resiko']) : 'Low';
+            $riskLevel = ucfirst(strtolower($riskInput));
+            if (!in_array($riskLevel, ['Low', 'Medium', 'High'])) {
+                $riskLevel = 'Low';
+            }
+
             // Create question without quiz_id
             $question = Question::create([
                 'question_text' => $row['pertanyaan'],
-                'risk_level' => $row['level_resiko'] ?? 'Low',
+                'risk_level' => $riskLevel,
                 'reference' => $row['referensi'] ?? null,
                 'timer_seconds' => 30 // Default timer
             ]);
