@@ -18,7 +18,8 @@ class QuestionTemplateExport implements FromArray, WithHeadings
             'jawaban_b',
             'jawaban_c',
             'jawaban_d',
-            'jawaban_benar'
+            'jawaban_benar',
+            'durasi_detik'
         ];
     }
 

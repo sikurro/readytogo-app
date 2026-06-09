@@ -20,6 +20,7 @@ const form = useForm({
     question_text: '',
     question_image: null,
     risk_level: 'Low',
+    timer_seconds: 7,
     reference: '',
     categories: [],
     answers: defaultAnswers,
@@ -255,6 +256,20 @@ const getAnswerLabel = (index) => {
                                 placeholder="Contoh: Undang-Undang No. 1 Tahun 1970"
                             />
                             <InputError :message="form.errors.reference" class="mt-1" />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-300">Durasi Pengerjaan (Detik)</label>
+                            <input 
+                                type="number" 
+                                v-model="form.timer_seconds"
+                                min="1"
+                                required
+                                class="w-full bg-slate-950 border rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                                :class="form.errors.timer_seconds ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500' : 'border-slate-800'"
+                                placeholder="Contoh: 7"
+                            />
+                            <InputError :message="form.errors.timer_seconds" class="mt-1" />
                         </div>
                     </div>
                 </div>
