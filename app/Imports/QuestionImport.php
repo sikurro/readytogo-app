@@ -31,7 +31,7 @@ class QuestionImport implements ToCollection, WithHeadingRow
                 'question_text' => $row['pertanyaan'],
                 'risk_level' => $riskLevel,
                 'reference' => $row['referensi'] ?? null,
-                'timer_seconds' => 30 // Default timer
+                'timer_seconds' => isset($row['durasi_detik']) && is_numeric($row['durasi_detik']) ? (int)$row['durasi_detik'] : 7
             ]);
 
             // Handle categories (comma separated)

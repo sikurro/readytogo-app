@@ -83,6 +83,7 @@ class QuestionController extends Controller
             'question_text' => 'required|string',
             'question_image' => 'nullable|image|max:2048',
             'risk_level' => 'required|in:Low,Medium,High',
+            'timer_seconds' => 'required|integer|min:1',
             'reference' => 'nullable|string',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id',
@@ -92,7 +93,7 @@ class QuestionController extends Controller
             'answers.*.is_correct' => 'required|boolean'
         ]);
 
-        $data = $request->only(['question_text', 'risk_level', 'reference']);
+        $data = $request->only(['question_text', 'risk_level', 'reference', 'timer_seconds']);
         if ($request->hasFile('question_image')) {
             $path = $request->file('question_image')->store('questions', 'public');
             $data['question_image'] = '/storage/' . $path;
@@ -135,6 +136,7 @@ class QuestionController extends Controller
             'question_image' => 'nullable|image|max:2048',
             'remove_question_image' => 'nullable|boolean',
             'risk_level' => 'required|in:Low,Medium,High',
+            'timer_seconds' => 'required|integer|min:1',
             'reference' => 'nullable|string',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id',
@@ -146,7 +148,7 @@ class QuestionController extends Controller
             'answers.*.is_correct' => 'required|boolean'
         ]);
 
-        $data = $request->only(['question_text', 'risk_level', 'reference']);
+        $data = $request->only(['question_text', 'risk_level', 'reference', 'timer_seconds']);
         if ($request->hasFile('question_image')) {
             $path = $request->file('question_image')->store('questions', 'public');
             $data['question_image'] = '/storage/' . $path;
