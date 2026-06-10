@@ -40,6 +40,10 @@ Dokumen ini berisi *timeline* dan tahapan pengembangan (roadmap) tingkat tinggi 
   - Pantauan laporan insiden (List View & Map View).
 - **Manajemen Insiden:** 
   - Admin dapat merespons, memberi komentar, dan memperbarui status insiden (*Pending, In Progress, Solved*).
+- **Manajemen User / Petugas (Registrasi Tertutup):**
+  - CRUD Akun Pengguna (Nama, Email, Jabatan/Position, dan Role: Admin/Petugas).
+  - Sistem registrasi user bersifat internal/tertutup (hanya bisa didaftarkan oleh Admin lewat Dashboard).
+  - Fitur edit detail profil, reset password, dan hapus/nonaktifkan akun petugas.
 - **Leaderboard & Rangkuman Data:**
   - Halaman klasemen kuis yang otomatis menyeleksi data per bulan.
 - **Fitur Export (Excel):**
