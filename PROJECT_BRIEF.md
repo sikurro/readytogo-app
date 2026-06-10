@@ -18,9 +18,9 @@
 
 ## 3. Fitur Utama & Logika Bisnis
 
-### A. Otentikasi & Role (RBAC)
-- **Role Admin:** Memiliki hak akses penuh. Dapat mengatur kuis, memantau laporan insiden, mengubah status, melihat peta insiden, dan melakukan export data.
-- **Role Petugas:** Mengakses fitur-fitur operasional (Kuis harian, Fatigue Check, dan Lapor Insiden).
+#### A. Otentikasi & Role (RBAC)
+- **Role Admin:** Memiliki hak akses penuh. Dapat mengelola data pengguna/user (Registrasi petugas bersifat tertutup dan dikelola langsung oleh Admin), mengatur kuis, memantau laporan insiden, mengubah status, melihat peta insiden, dan melakukan export data.
+- **Role Petugas:** Mengakses fitur-fitur operasional (Kuis harian, Fatigue Check, dan Lapor Insiden). Tidak ada fitur registrasi mandiri/terbuka untuk publik demi keamanan internal.
 
 ### B. Modul Kuis (Game Edukasi K3 / Daily Quiz)
 - Gaya bermain interaktif seperti Kahoot.
@@ -65,7 +65,7 @@
 ---
 
 ## 5. Struktur Database (Usulan Tahap Awal)
-
+ 
 1. `users` (id, name, email, password, role_id, avatar, position, status_fit, created_at)
 2. `roles` (id, name)
 3. `quizzes` (id, title, theme, duration_minutes, is_active, created_at)
@@ -98,12 +98,18 @@
 - `GET /admin/fatigue-reports` -> Laporan fatigue (list & export)
 - `GET /admin/incidents` -> Menampilkan laporan insiden (List/Peta)
 - `PUT /admin/incidents/{id}/status` -> Endpoint update status laporan (Pending/Proses/Selesai)
+- `GET /admin/users` -> Halaman manajemen user (List & Search)
+- `GET /admin/users/create` -> Form tambah user baru
+- `POST /admin/users` -> Simpan user baru (Registrasi Tertutup)
+- `GET /admin/users/{id}/edit` -> Form edit user
+- `PUT /admin/users/{id}` -> Update data user
+- `DELETE /admin/users/{id}` -> Hapus / nonaktifkan user
 
 ---
 
 ## 7. Komponen Vue.js (Arsitektur Inertia)
 
-Pemisahan logic akan dilakukan secara modular di dalam `resources/js/Pages` dan `resources/js/Components`.
+Pemisinan logic akan dilakukan secara modular di dalam `resources/js/Pages` dan `resources/js/Components`.
 
 **Layouts:**
 - `MobileAppLayout.vue` -> Layout dengan Bottom Navigation untuk Petugas.
@@ -122,3 +128,6 @@ Pemisahan logic akan dilakukan secara modular di dalam `resources/js/Pages` dan 
 - `Quiz/Play.vue`
 - `Incident/Form.vue`
 - `Admin/Incident/Manager.vue`
+- `Admin/User/Index.vue`
+- `Admin/User/Create.vue`
+- `Admin/User/Edit.vue`
