@@ -71,6 +71,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('questions/export', [App\Http\Controllers\Admin\QuestionController::class, 'export'])->name('questions.export');
     Route::post('questions/import', [App\Http\Controllers\Admin\QuestionController::class, 'import'])->name('questions.import');
     Route::resource('questions', App\Http\Controllers\Admin\QuestionController::class);
+
+    Route::get('users/template', [App\Http\Controllers\Admin\UserController::class, 'downloadTemplate'])->name('users.template');
+    Route::get('users/export', [App\Http\Controllers\Admin\UserController::class, 'export'])->name('users.export');
+    Route::post('users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
+    Route::post('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
 
 require __DIR__.'/auth.php';

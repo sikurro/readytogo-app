@@ -69,6 +69,14 @@ const logout = () => {
                     <span v-if="isSidebarOpen">Riwayat Kuis</span>
                 </Link>
 
+                <!-- Manajemen User -->
+                <Link :href="route('admin.users.index')" :class="[route().current('admin.users.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A2.25 2.25 0 0112.75 21.5h-1.5a2.25 2.25 0 01-2.25-2.263V19.13m-2.625.372A9.336 9.336 0 011.5 18.553a4.125 4.125 0 017.533-2.493m0 0a9.07 9.07 0 013.217-3.185M9.813 15.904L9 21m8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M12 12.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
+                    </svg>
+                    <span v-if="isSidebarOpen">Manajemen User</span>
+                </Link>
+
                 <!-- Incidents Reporting -->
                 <Link :href="route('admin.dashboard')" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
