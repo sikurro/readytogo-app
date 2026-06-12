@@ -111,13 +111,13 @@ class LeaderboardController extends Controller
                     ? round(($totalCorrect / $totalQuestions) * 100, 2)
                     : 0;
             } else {
-                $avgScore = 0;
-                $avgAccuracy = 0;
+                $avgScore = null;
+                $avgAccuracy = null;
             }
 
             $dailyProgressData[] = [
                 'day' => $dayStr,
-                'avg_score' => round($avgScore, 2),
+                'avg_score' => $avgScore !== null ? round($avgScore, 2) : null,
                 'avg_accuracy' => $avgAccuracy,
                 'total_attempts' => $dayAttempts ? $dayAttempts->count() : 0,
             ];
