@@ -3,23 +3,25 @@ import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import MonthPicker from '@/Components/MonthPicker.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
-import { Bar, Pie } from 'vue-chartjs';
+import { Line, Pie } from 'vue-chartjs';
 import { 
     Chart as ChartJS, 
     Title, 
     Tooltip, 
     Legend, 
-    BarElement, 
+    LineElement,
+    PointElement,
     CategoryScale, 
     LinearScale, 
-    ArcElement 
+    ArcElement,
+    Filler
 } from 'chart.js';
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, ArcElement, Filler);
 
 const props = defineProps({
     leaderboard: Array,
-    barChartData: Array,
+    dailyProgressData: Array,
     pieChartData: Object,
     filters: Object,
 });
@@ -54,30 +56,40 @@ const exportToExcel = () => {
     window.location.href = route('admin.leaderboard.export') + '?' + params.toString();
 };
 
-// Bar Chart Setup
-const barData = computed(() => {
-    const labels = props.barChartData.map(item => item.location);
-    const correctData = props.barChartData.map(item => item.correct);
-    const wrongData = props.barChartData.map(item => item.wrong);
+// Line Chart Setup: Daily K3 Progress
+const lineData = computed(() => {
+    const labels = props.dailyProgressData.map(item => item.day);
+    const avgScores = props.dailyProgressData.map(item => item.avg_score);
+    const avgAccuracies = props.dailyProgressData.map(item => item.avg_accuracy);
     
     return {
         labels,
         datasets: [
             {
-                label: 'Jawaban Benar',
-                backgroundColor: '#10b981', // emerald-500
-                data: correctData,
+                label: 'Rata-rata Skor Harian',
+                borderColor: '#f59e0b', // amber-500
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                data: avgScores,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
             },
             {
-                label: 'Jawaban Salah',
-                backgroundColor: '#f43f5e', // rose-500
-                data: wrongData,
+                label: 'Akurasi Jawaban Benar (%)',
+                borderColor: '#10b981', // emerald-500
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                data: avgAccuracies,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
             }
         ]
     };
 });
 
-const barOptions = {
+const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -85,6 +97,10 @@ const barOptions = {
             labels: {
                 color: '#cbd5e1',
             }
+        },
+        tooltip: {
+            mode: 'index',
+            intersect: false,
         }
     },
     scales: {
@@ -94,6 +110,14 @@ const barOptions = {
             },
             ticks: {
                 color: '#cbd5e1',
+            },
+            title: {
+                display: true,
+                text: 'Tanggal (Hari)',
+                color: '#94a3b8',
+                font: {
+                    size: 11
+                }
             }
         },
         y: {
@@ -102,7 +126,16 @@ const barOptions = {
             },
             ticks: {
                 color: '#cbd5e1',
-                precision: 0
+            },
+            min: 0,
+            max: 100,
+            title: {
+                display: true,
+                text: 'Nilai / Persentase',
+                color: '#94a3b8',
+                font: {
+                    size: 11
+                }
             }
         }
     }
@@ -133,6 +166,10 @@ const pieOptions = {
         }
     }
 };
+
+const hasDailyData = computed(() => {
+    return props.dailyProgressData.some(item => item.total_attempts > 0);
+});
 </script>
 
 <template>
@@ -171,13 +208,13 @@ const pieOptions = {
 
             <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Bar Chart: Per Lokasi -->
+                <!-- Line Chart: Daily Progress -->
                 <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                    <h4 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-3">Perbandingan Jawaban Per Lokasi/Unit Kerja</h4>
+                    <h4 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-3">Tren Perkembangan Pengetahuan K3 Petugas Harian</h4>
                     <div class="h-64 relative">
-                        <Bar v-if="barChartData.length > 0" :data="barData" :options="barOptions" />
+                        <Line v-if="hasDailyData" :data="lineData" :options="lineOptions" />
                         <div v-else class="h-full flex items-center justify-center text-slate-500 text-sm">
-                            Tidak ada data untuk grafik lokasi
+                            Tidak ada data aktivitas kuis untuk periode grafik ini
                         </div>
                     </div>
                 </div>
@@ -188,7 +225,7 @@ const pieOptions = {
                     <div class="h-64 relative">
                         <Pie v-if="pieChartData.correct > 0 || pieChartData.wrong > 0" :data="pieData" :options="pieOptions" />
                         <div v-else class="h-full flex items-center justify-center text-slate-500 text-sm">
-                            Tidak ada data untuk grafik pemahaman
+                            Tidak ada data jawaban kuis untuk periode grafik ini
                         </div>
                     </div>
                 </div>
