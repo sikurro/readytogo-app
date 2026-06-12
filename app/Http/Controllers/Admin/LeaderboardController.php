@@ -76,14 +76,52 @@ class LeaderboardController extends Controller
 
         $leaderboard = $this->getLeaderboardData($month);
 
-        // Bar Chart Data: Group by location
-        $barChartData = $leaderboard->groupBy('location')->map(function ($items, $location) {
-            return [
-                'location' => $location,
-                'correct' => $items->sum('total_correct'),
-                'wrong' => $items->sum('total_wrong'),
+        // Fetch all attempts in that month to calculate daily progress
+        $attempts = QuizAttempt::with(['quiz'])
+            ->when($month, function ($query, $month) {
+                return $query->where('month_year', $month);
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $parsedMonth = \Carbon\Carbon::parse($month . '-01');
+        $daysInMonth = $parsedMonth->daysInMonth;
+
+        $attemptsByDay = $attempts->groupBy(function ($attempt) {
+            return $attempt->created_at->format('d');
+        });
+
+        $dailyProgressData = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayStr = str_pad($day, 2, '0', STR_PAD_LEFT);
+            $dayAttempts = $attemptsByDay->get($dayStr);
+
+            if ($dayAttempts && $dayAttempts->count() > 0) {
+                $avgScore = $dayAttempts->avg('score');
+                $totalCorrect = $dayAttempts->sum('correct_answers');
+                $totalQuestions = $dayAttempts->sum(function ($attempt) {
+                    if (!$attempt->quiz) {
+                        return $attempt->correct_answers;
+                    }
+                    return $attempt->quiz->is_daily_quiz 
+                        ? ($attempt->quiz->daily_question_limit ?: 10) 
+                        : $attempt->quiz->questions()->count();
+                });
+                $avgAccuracy = $totalQuestions > 0 
+                    ? round(($totalCorrect / $totalQuestions) * 100, 2)
+                    : 0;
+            } else {
+                $avgScore = 0;
+                $avgAccuracy = 0;
+            }
+
+            $dailyProgressData[] = [
+                'day' => $dayStr,
+                'avg_score' => round($avgScore, 2),
+                'avg_accuracy' => $avgAccuracy,
+                'total_attempts' => $dayAttempts ? $dayAttempts->count() : 0,
             ];
-        })->values();
+        }
 
         // Pie Chart Data: Overall correct vs wrong
         $totalCorrectAll = $leaderboard->sum('total_correct');
@@ -95,7 +133,7 @@ class LeaderboardController extends Controller
 
         return Inertia::render('Admin/Leaderboard/Index', [
             'leaderboard' => $leaderboard,
-            'barChartData' => $barChartData,
+            'dailyProgressData' => $dailyProgressData,
             'pieChartData' => $pieChartData,
             'filters' => [
                 'month' => $month,
