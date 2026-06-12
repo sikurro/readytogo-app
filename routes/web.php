@@ -61,6 +61,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('quiz.history');
     Route::get('/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('quiz.history.export');
 
+    Route::get('/leaderboard', [App\Http\Controllers\Admin\LeaderboardController::class, 'index'])->name('leaderboard.index');
+    Route::get('/leaderboard/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'export'])->name('leaderboard.export');
+
 
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('quizzes', App\Http\Controllers\Admin\QuizController::class);

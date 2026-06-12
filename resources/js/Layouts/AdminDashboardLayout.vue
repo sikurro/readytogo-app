@@ -69,6 +69,14 @@ const logout = () => {
                     <span v-if="isSidebarOpen">Riwayat Kuis</span>
                 </Link>
 
+                <!-- Leaderboard & Rangkuman Data Quiz -->
+                <Link :href="route('admin.leaderboard.index')" :class="[route().current('admin.leaderboard.index') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18M3 6h18M3 18h18" />
+                    </svg>
+                    <span v-if="isSidebarOpen">Leaderboard</span>
+                </Link>
+
                 <!-- Manajemen User -->
                 <Link :href="route('admin.users.index')" :class="[route().current('admin.users.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
