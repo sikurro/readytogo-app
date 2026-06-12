@@ -59,22 +59,11 @@ const exportToExcel = () => {
 // Line Chart Setup: Daily K3 Progress
 const lineData = computed(() => {
     const labels = props.dailyProgressData.map(item => item.day);
-    const avgScores = props.dailyProgressData.map(item => item.avg_score);
     const avgAccuracies = props.dailyProgressData.map(item => item.avg_accuracy);
     
     return {
         labels,
         datasets: [
-            {
-                label: 'Rata-rata Skor Harian',
-                borderColor: '#f59e0b', // amber-500
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                data: avgScores,
-                tension: 0.35,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            },
             {
                 label: 'Akurasi Jawaban Benar (%)',
                 borderColor: '#10b981', // emerald-500
@@ -131,7 +120,7 @@ const lineOptions = {
             max: 100,
             title: {
                 display: true,
-                text: 'Nilai / Persentase',
+                text: 'Akurasi (%)',
                 color: '#94a3b8',
                 font: {
                     size: 11
