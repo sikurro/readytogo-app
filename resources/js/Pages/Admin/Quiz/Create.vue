@@ -4,6 +4,10 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
+const props = defineProps({
+    filters: Object,
+});
+
 const form = useForm({
     title: '',
     theme: '',
@@ -16,19 +20,23 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('admin.quizzes.store'));
+    form.post(route('admin.quizzes.store', props.filters));
 };
 
-const formatDate = (date) => {
-    if (!date) return '';
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
+// Konversi ISO datetime ke WIB (UTC+7) untuk ditampilkan sebagai referensi
+const toWIB = (isoString) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    const wib = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    const day   = String(wib.getUTCDate()).padStart(2, '0');
+    const month = String(wib.getUTCMonth() + 1).padStart(2, '0');
+    const year  = wib.getUTCFullYear();
+    const hours = String(wib.getUTCHours()).padStart(2, '0');
+    const mins  = String(wib.getUTCMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${mins} WIB`;
 };
+
 </script>
 
 <template>
@@ -42,7 +50,7 @@ const formatDate = (date) => {
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="flex items-center justify-between">
                 <Link 
-                    :href="route('admin.quizzes.index')" 
+                    :href="route('admin.quizzes.index', filters)" 
                     class="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors duration-200 text-sm font-medium"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -147,28 +155,36 @@ const formatDate = (date) => {
                         <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
                         <VueDatePicker 
                             v-model="form.start_time" 
-                            :format="formatDate"
-                            model-type="yyyy-MM-dd HH:mm:ss"
+                            format="dd/MM/yyyy HH:mm"
+                            model-type="iso"
                             dark
                             text-input
                             :time-config="{ timePickerInline: true }"
                             placeholder="Pilih Waktu Mulai"
                             input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
+                        <p v-if="form.start_time" class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-blue-400 shrink-0"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>
+                            Setara waktu WIB: <span class="font-medium text-blue-400">{{ toWIB(form.start_time) }}</span>
+                        </p>
                         <InputError :message="form.errors.start_time" class="mt-1" />
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
                         <VueDatePicker 
                             v-model="form.end_time" 
-                            :format="formatDate"
-                            model-type="yyyy-MM-dd HH:mm:ss"
+                            format="dd/MM/yyyy HH:mm"
+                            model-type="iso"
                             dark
                             text-input
                             :time-config="{ timePickerInline: true }"
                             placeholder="Pilih Waktu Selesai"
                             input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
+                        <p v-if="form.end_time" class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-blue-400 shrink-0"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>
+                            Setara waktu WIB: <span class="font-medium text-blue-400">{{ toWIB(form.end_time) }}</span>
+                        </p>
                         <InputError :message="form.errors.end_time" class="mt-1" />
                     </div>
                 </div>
@@ -187,7 +203,7 @@ const formatDate = (date) => {
                 <!-- Actions -->
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
                     <Link 
-                        :href="route('admin.quizzes.index')" 
+                        :href="route('admin.quizzes.index', filters)" 
                         class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg font-medium text-sm transition-colors"
                     >
                         Batal

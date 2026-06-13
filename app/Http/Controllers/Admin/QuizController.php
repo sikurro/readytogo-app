@@ -14,17 +14,73 @@ use App\Models\Question;
 
 class QuizController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $quizzes = Quiz::withCount('questions')->latest()->paginate(10);
+        $query = Quiz::withCount('questions');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('theme', 'like', '%' . $search . '%');
+            });
+        }
+
+        $status = $request->input('status', 'aktif');
+        if ($status === 'aktif') {
+            $query->where('is_active', true);
+        } elseif ($status === 'nonaktif') {
+            $query->where('is_active', false);
+        }
+
+        $tipe = $request->input('tipe', 'semua');
+        if ($tipe === 'harian') {
+            $query->where('is_daily_quiz', true);
+        } elseif ($tipe === 'event') {
+            $query->where('is_daily_quiz', false);
+        }
+
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $sortField = $request->input('sort_field', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+
+        $sortMap = [
+            'judul' => 'title',
+            'tipe' => 'is_daily_quiz',
+            'tema' => 'theme',
+            'durasi' => 'duration_minutes',
+            'waktu' => 'start_time',
+            'status' => 'is_active',
+            'created_at' => 'created_at',
+        ];
+
+        $orderColumn = $sortMap[$sortField] ?? 'created_at';
+        $orderDirection = in_array(strtolower($sortDirection), ['asc', 'desc']) ? $sortDirection : 'desc';
+
+        $quizzes = $query->orderBy($orderColumn, $orderDirection)->paginate($perPage)->withQueryString();
+
         return Inertia::render('Admin/Quiz/Index', [
-            'quizzes' => $quizzes
+            'quizzes' => $quizzes,
+            'filters' => [
+                'search' => $request->input('search', ''),
+                'status' => $status,
+                'tipe' => $tipe,
+                'per_page' => $perPage,
+                'sort_field' => $sortField,
+                'sort_direction' => $sortDirection,
+            ],
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('Admin/Quiz/Create');
+        return Inertia::render('Admin/Quiz/Create', [
+            'filters' => $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']),
+        ]);
     }
 
     public function store(Request $request)
@@ -41,13 +97,14 @@ class QuizController extends Controller
         ]);
 
         Quiz::create($request->all());
-        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil dibuat.');
+        return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil dibuat.');
     }
 
-    public function edit(Quiz $quiz)
+    public function edit(Request $request, Quiz $quiz)
     {
         return Inertia::render('Admin/Quiz/Edit', [
-            'quiz' => $quiz
+            'quiz' => $quiz,
+            'filters' => $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']),
         ]);
     }
 
@@ -65,13 +122,18 @@ class QuizController extends Controller
         ]);
 
         $quiz->update($request->all());
-        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil diperbarui.');
+        return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil diperbarui.');
     }
 
-    public function destroy(Quiz $quiz)
+    public function destroy(Request $request, Quiz $quiz)
     {
         $quiz->delete();
-        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil dihapus.');
+
+        $filters = $request->input('_filters', []);
+        $allowed = ['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction'];
+        $params = array_intersect_key($filters, array_flip($allowed));
+
+        return redirect()->route('admin.quizzes.index', $params)->with('success', 'Kuis berhasil dihapus.');
     }
 
     public function show(Request $request, Quiz $quiz)

@@ -1,18 +1,124 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import Pagination from '@/Components/Pagination.vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
     quizzes: Object,
+    filters: Object,
 });
 
-const deleteQuiz = (id) => {
-    if(confirm('Apakah Anda yakin ingin menghapus kuis ini?')) {
-        useForm({}).delete(route('admin.quizzes.destroy', id));
+const search = ref(props.filters?.search || '');
+const status = ref(props.filters?.status || 'aktif');
+const tipe = ref(props.filters?.tipe || 'semua');
+const per_page = ref(props.filters?.per_page || '10');
+const sortField = ref(props.filters?.sort_field || 'created_at');
+const sortDirection = ref(props.filters?.sort_direction || 'desc');
+
+// Utility debounce sederhana
+let searchDebounceTimer = null;
+
+// State loading saat request filter sedang berjalan
+const isLoading = ref(false);
+
+const handleSearch = () => {
+    isLoading.value = true;
+    router.get(route('admin.quizzes.index'), {
+        search: search.value,
+        status: status.value,
+        tipe: tipe.value,
+        per_page: per_page.value,
+        sort_field: sortField.value,
+        sort_direction: sortDirection.value,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onFinish: () => { isLoading.value = false; },
+    });
+};
+
+// Guard agar update dari props tidak memicu double request
+let isUpdatingFromProps = false;
+
+// Sync refs ketika backend mengirim props.filters baru (misal: setelah delete redirect)
+watch(() => props.filters, (newFilters) => {
+    if (!newFilters) return;
+    isUpdatingFromProps = true;
+    search.value = newFilters.search || '';
+    status.value = newFilters.status || 'aktif';
+    tipe.value = newFilters.tipe || 'semua';
+    per_page.value = String(newFilters.per_page || '10');
+    sortField.value = newFilters.sort_field || 'created_at';
+    sortDirection.value = newFilters.sort_direction || 'desc';
+    // Reset flag setelah Vue selesai memproses reactive updates
+    setTimeout(() => { isUpdatingFromProps = false; }, 0);
+}, { deep: true });
+
+// Watch search dengan debounce 500ms agar tidak spam request tiap ketik
+watch(search, () => {
+    if (isUpdatingFromProps) return;
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => handleSearch(), 500);
+});
+
+// Watch filter select (langsung trigger tanpa debounce karena aksi eksplisit user)
+watch([status, tipe, per_page], () => {
+    if (isUpdatingFromProps) return;
+    handleSearch();
+});
+
+const sortBy = (field) => {
+    if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortField.value = field;
+        sortDirection.value = 'desc';
     }
-}
+    handleSearch();
+};
+
+// Delete confirmation modal state
+const confirmingQuizDeletion = ref(false);
+const quizToDelete = ref(null);
+const isDeleting = ref(false);
+
+const confirmQuizDeletion = (id) => {
+    quizToDelete.value = id;
+    confirmingQuizDeletion.value = true;
+};
+
+const deleteQuiz = () => {
+    isDeleting.value = true;
+    router.delete(route('admin.quizzes.destroy', quizToDelete.value), {
+        data: {
+            _filters: {
+                search: search.value,
+                status: status.value,
+                tipe: tipe.value,
+                per_page: per_page.value,
+                sort_field: sortField.value,
+                sort_direction: sortDirection.value,
+            }
+        },
+        preserveScroll: true,
+        preserveState: false,
+        onSuccess: () => {
+            confirmingQuizDeletion.value = false;
+            quizToDelete.value = null;
+            isDeleting.value = false;
+        },
+        onError: () => {
+            isDeleting.value = false;
+        }
+    });
+};
 const formatDateTime = (dateString) => {
     if (!dateString) return '-';
+    // new Date() mengkonversi UTC (dari Laravel) ke timezone lokal browser
+    // sehingga WIB/WITA/WIT masing-masing otomatis tampil benar
     const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -36,7 +142,7 @@ const formatDateTime = (dateString) => {
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-bold text-slate-200">Daftar Kuis Tersedia</h3>
                     <Link 
-                        :href="route('admin.quizzes.create')"
+                        :href="route('admin.quizzes.create', { status, tipe, per_page })"
                         class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg transition-colors duration-200 shadow-lg shadow-blue-900/30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -46,22 +152,99 @@ const formatDateTime = (dateString) => {
                     </Link>
                 </div>
 
+                <!-- Filters -->
+                <div class="flex flex-col md:flex-row md:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                    <div class="flex-1 relative min-w-[200px]">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-slate-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                        <input v-model="search" type="text" placeholder="Cari kuis berdasarkan judul atau tema..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
+                    </div>
+                    <div class="w-full md:w-48 relative">
+                        <select v-model="status" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="semua">Semua Status</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48 relative">
+                        <select v-model="tipe" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="semua">Semua Tipe</option>
+                            <option value="harian">Kuis Harian</option>
+                            <option value="event">Kuis Event</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 relative">
+                        <select v-model="per_page" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="10">10 Kuis</option>
+                            <option value="15">15 Kuis</option>
+                            <option value="25">25 Kuis</option>
+                            <option value="50">50 Kuis</option>
+                            <option value="100">100 Kuis</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Data Table -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto relative transition-opacity duration-200" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                    <!-- Loading overlay -->
+                    <div v-if="isLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-slate-900/60 rounded-lg backdrop-blur-sm">
+                        <svg class="animate-spin w-7 h-7 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span class="text-xs text-amber-400 font-medium">Memuat data...</span>
+                    </div>
                     <table class="min-w-full text-slate-300">
                         <thead>
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                                <th class="py-3 px-4">Judul Kuis</th>
-                                <th class="py-3 px-4 text-center">Tipe</th>
-                                <th class="py-3 px-4">Tema</th>
-                                <th class="py-3 px-4 text-center">Durasi / Limit Soal</th>
-                                <th class="py-3 px-4 text-center">Waktu Event</th>
-                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-center w-12">No</th>
+                                <th @click="sortBy('judul')" class="py-3 px-4 cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center gap-1">
+                                        Judul Kuis
+                                        <span v-if="sortField === 'judul'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('tipe')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Tipe
+                                        <span v-if="sortField === 'tipe'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('tema')" class="py-3 px-4 cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center gap-1">
+                                        Tema
+                                        <span v-if="sortField === 'tema'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('durasi')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Durasi / Limit Soal
+                                        <span v-if="sortField === 'durasi'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('waktu')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Waktu Event
+                                        <span v-if="sortField === 'waktu'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('status')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Status
+                                        <span v-if="sortField === 'status'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
                                 <th class="py-3 px-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr v-for="quiz in quizzes.data" :key="quiz.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                            <tr v-for="(quiz, index) in quizzes.data" :key="quiz.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                                <td class="py-4 px-4 text-center font-medium text-slate-400">
+                                    {{ quizzes.from + index }}
+                                </td>
                                 <td class="py-4 px-4 font-medium text-slate-200">
                                     {{ quiz.title }}
                                 </td>
@@ -70,7 +253,7 @@ const formatDateTime = (dateString) => {
                                         Kuis Harian
                                     </span>
                                     <span v-else class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                                        Event Quiz
+                                        Kuis Event
                                     </span>
                                 </td>
                                 <td class="py-4 px-4">
@@ -82,9 +265,19 @@ const formatDateTime = (dateString) => {
                                     <div v-else class="text-xs text-slate-500 mt-0.5">{{ quiz.questions_count }} Soal Terpilih</div>
                                 </td>
                                 <td class="py-4 px-4 text-center whitespace-nowrap">
-                                    <div v-if="!quiz.is_daily_quiz && quiz.start_time">
-                                        <div class="text-xs text-slate-300">Mulai: {{ formatDateTime(quiz.start_time) }}</div>
-                                        <div class="text-xs text-slate-300 mt-1">Selesai: {{ formatDateTime(quiz.end_time) }}</div>
+                                    <div v-if="!quiz.is_daily_quiz && quiz.start_time" class="flex flex-col items-center justify-center gap-1.5">
+                                        <div class="flex items-center gap-1.5 text-xs text-slate-300" title="Waktu Mulai">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-emerald-400">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            {{ formatDateTime(quiz.start_time) }}
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-xs text-slate-300" title="Waktu Selesai">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-rose-400">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a1.5 1.5 0 0 0 1.129-1.455V6.305c0-1.013-.882-1.785-1.875-1.579l-3.114.732a9 9 0 0 1-6.086-.71l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                            </svg>
+                                            {{ formatDateTime(quiz.end_time) }}
+                                        </div>
                                     </div>
                                     <div v-else class="text-xs text-slate-500">-</div>
                                 </td>
@@ -112,7 +305,7 @@ const formatDateTime = (dateString) => {
                                         <span v-else class="w-5 h-5 block" title="Kuis harian otomatis acak dari bank soal"></span>
 
                                         <Link 
-                                            :href="route('admin.quizzes.edit', quiz.id)" 
+                                            :href="route('admin.quizzes.edit', { quiz: quiz.id, search, status, tipe, per_page, sort_field: sortField, sort_direction: sortDirection })" 
                                             class="text-indigo-400 hover:text-indigo-300 transition-colors" 
                                             title="Edit"
                                         >
@@ -121,7 +314,7 @@ const formatDateTime = (dateString) => {
                                             </svg>
                                         </Link>
                                         <button 
-                                            @click="deleteQuiz(quiz.id)" 
+                                            @click="confirmQuizDeletion(quiz.id)" 
                                             class="text-rose-500 hover:text-rose-400 transition-colors" 
                                             title="Hapus"
                                         >
@@ -133,12 +326,37 @@ const formatDateTime = (dateString) => {
                                 </td>
                             </tr>
                             <tr v-if="quizzes.data.length === 0">
-                                <td colspan="6" class="py-8 text-center text-slate-500">Belum ada data kuis.</td>
+                                <td colspan="8" class="py-8 text-center text-slate-500">Belum ada data kuis.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
+
+                <!-- Pagination Section -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-slate-800 pt-6" v-if="quizzes.data.length > 0">
+                    <div class="text-sm text-slate-400">
+                        Menampilkan 
+                        <span class="font-medium text-slate-300">{{ quizzes.from }}</span> 
+                        sampai 
+                        <span class="font-medium text-slate-300">{{ quizzes.to }}</span> 
+                        dari 
+                        <span class="font-medium text-slate-300">{{ quizzes.total }}</span> kuis
+                    </div>
+                    <Pagination :links="quizzes.links" />
+                </div>
         </div>
+    </div>
+
+        <!-- Delete Confirmation Modal -->
+        <ConfirmationModal
+            :show="confirmingQuizDeletion"
+            title="Hapus Kuis"
+            message="Apakah Anda yakin ingin menghapus kuis ini? Tindakan ini akan menghapus kuis secara permanen dan memutuskan semua soal yang terhubung."
+            confirm-text="Ya, Hapus"
+            cancel-text="Batal"
+            :loading="isDeleting"
+            @close="confirmingQuizDeletion = false"
+            @confirm="deleteQuiz"
+        />
     </AdminDashboardLayout>
 </template>
