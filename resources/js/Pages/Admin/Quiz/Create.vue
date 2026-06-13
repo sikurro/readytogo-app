@@ -23,6 +23,19 @@ const submit = () => {
     form.post(route('admin.quizzes.store', props.filters));
 };
 
+// Konversi ISO datetime ke WIB (UTC+7) untuk ditampilkan sebagai referensi
+const toWIB = (isoString) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    const wib = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    const day   = String(wib.getUTCDate()).padStart(2, '0');
+    const month = String(wib.getUTCMonth() + 1).padStart(2, '0');
+    const year  = wib.getUTCFullYear();
+    const hours = String(wib.getUTCHours()).padStart(2, '0');
+    const mins  = String(wib.getUTCMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${mins} WIB`;
+};
 
 </script>
 
@@ -150,6 +163,10 @@ const submit = () => {
                             placeholder="Pilih Waktu Mulai"
                             input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
+                        <p v-if="form.start_time" class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-blue-400 shrink-0"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>
+                            Setara waktu WIB: <span class="font-medium text-blue-400">{{ toWIB(form.start_time) }}</span>
+                        </p>
                         <InputError :message="form.errors.start_time" class="mt-1" />
                     </div>
                     <div class="space-y-2">
@@ -164,6 +181,10 @@ const submit = () => {
                             placeholder="Pilih Waktu Selesai"
                             input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
+                        <p v-if="form.end_time" class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-blue-400 shrink-0"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>
+                            Setara waktu WIB: <span class="font-medium text-blue-400">{{ toWIB(form.end_time) }}</span>
+                        </p>
                         <InputError :message="form.errors.end_time" class="mt-1" />
                     </div>
                 </div>
