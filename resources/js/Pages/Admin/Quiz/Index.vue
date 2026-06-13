@@ -11,6 +11,16 @@ const deleteQuiz = (id) => {
         useForm({}).delete(route('admin.quizzes.destroy', id));
     }
 }
+const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
 </script>
 
 <template>
@@ -45,6 +55,7 @@ const deleteQuiz = (id) => {
                                 <th class="py-3 px-4 text-center">Tipe</th>
                                 <th class="py-3 px-4">Tema</th>
                                 <th class="py-3 px-4 text-center">Durasi / Limit Soal</th>
+                                <th class="py-3 px-4 text-center">Waktu Event</th>
                                 <th class="py-3 px-4 text-center">Status</th>
                                 <th class="py-3 px-4 text-right">Aksi</th>
                             </tr>
@@ -69,6 +80,13 @@ const deleteQuiz = (id) => {
                                     <div class="text-slate-300">{{ quiz.duration_minutes }} Menit</div>
                                     <div v-if="quiz.is_daily_quiz" class="text-xs text-purple-400 font-medium mt-0.5">Limit: {{ quiz.daily_question_limit }} Soal Acak</div>
                                     <div v-else class="text-xs text-slate-500 mt-0.5">{{ quiz.questions_count }} Soal Terpilih</div>
+                                </td>
+                                <td class="py-4 px-4 text-center whitespace-nowrap">
+                                    <div v-if="!quiz.is_daily_quiz && quiz.start_time">
+                                        <div class="text-xs text-slate-300">Mulai: {{ formatDateTime(quiz.start_time) }}</div>
+                                        <div class="text-xs text-slate-300 mt-1">Selesai: {{ formatDateTime(quiz.end_time) }}</div>
+                                    </div>
+                                    <div v-else class="text-xs text-slate-500">-</div>
                                 </td>
                                 <td class="py-4 px-4 text-center whitespace-nowrap">
                                     <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border"
