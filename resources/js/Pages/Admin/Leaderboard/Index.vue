@@ -1,6 +1,7 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import MonthPicker from '@/Components/MonthPicker.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { Line, Pie } from 'vue-chartjs';
@@ -21,17 +22,26 @@ import {
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, ArcElement, Filler);
 
 const props = defineProps({
-    leaderboard: Array,
+    leaderboard: Object,
+    locations: Array,
     dailyProgressData: Array,
     pieChartData: Object,
     filters: Object,
 });
 
 const month = ref(props.filters?.month || '');
+const searchQuery = ref(props.filters?.search || '');
+const filterLocation = ref(props.filters?.location || '');
+const sortKey = ref(props.filters?.sort_key || 'score');
+const sortDirection = ref(props.filters?.sort_dir || 'desc');
 
 const updateFilters = () => {
     router.get(route('admin.leaderboard.index'), {
         month: month.value,
+        search: searchQuery.value,
+        location: filterLocation.value,
+        sort_key: sortKey.value,
+        sort_dir: sortDirection.value,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -43,17 +53,34 @@ watch(month, () => {
     updateFilters();
 });
 
+watch(filterLocation, () => {
+    updateFilters();
+});
+
+let searchTimeout;
+watch(searchQuery, () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        updateFilters();
+    }, 450);
+});
+
 const resetFilters = () => {
-    // Default to current month year (YYYY-MM)
     const today = new Date();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
     month.value = `${yyyy}-${mm}`;
+    searchQuery.value = '';
+    filterLocation.value = '';
 };
 
 const exportToExcel = () => {
     const params = new URLSearchParams();
     if (month.value) params.append('month', month.value);
+    if (searchQuery.value) params.append('search', searchQuery.value);
+    if (filterLocation.value) params.append('location', filterLocation.value);
+    if (sortKey.value) params.append('sort_key', sortKey.value);
+    if (sortDirection.value) params.append('sort_dir', sortDirection.value);
     window.location.href = route('admin.leaderboard.export') + '?' + params.toString();
 };
 
@@ -202,11 +229,7 @@ const hasDailyData = computed(() => {
     return props.dailyProgressData.some(item => item.total_attempts > 0);
 });
 
-// Search & Sorting States
-const searchQuery = ref('');
-const sortKey = ref('score');
-const sortDirection = ref('desc');
-
+// Search & Sorting Actions
 const sortBy = (key) => {
     if (sortKey.value === key) {
         sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
@@ -214,59 +237,8 @@ const sortBy = (key) => {
         sortKey.value = key;
         sortDirection.value = 'desc';
     }
+    updateFilters();
 };
-
-const filteredAndSortedLeaderboard = computed(() => {
-    let list = [...props.leaderboard];
-
-    // Filter
-    if (searchQuery.value.trim() !== '') {
-        const query = searchQuery.value.toLowerCase().trim();
-        list = list.filter(row => {
-            const name = (row.name || '').toLowerCase();
-            const position = (row.position || '').toLowerCase();
-            const location = (row.location || '').toLowerCase();
-            return name.includes(query) || position.includes(query) || location.includes(query);
-        });
-    }
-
-    // Sort
-    list.sort((a, b) => {
-        let modifier = sortDirection.value === 'desc' ? -1 : 1;
-        let fieldA, fieldB;
-
-        switch (sortKey.value) {
-            case 'score':
-                fieldA = Number(a.total_score || 0);
-                fieldB = Number(b.total_score || 0);
-                break;
-            case 'total_quizzes':
-                fieldA = Number(a.total_questions || 0);
-                fieldB = Number(b.total_questions || 0);
-                break;
-            case 'correct':
-                fieldA = Number(a.total_correct || 0);
-                fieldB = Number(b.total_correct || 0);
-                break;
-            case 'wrong':
-                fieldA = Number(a.total_wrong || 0);
-                fieldB = Number(b.total_wrong || 0);
-                break;
-            case 'accuracy':
-                fieldA = Number(a.percentage_correct || 0);
-                fieldB = Number(b.percentage_correct || 0);
-                break;
-            default:
-                return 0;
-        }
-
-        if (fieldA < fieldB) return -1 * modifier;
-        if (fieldA > fieldB) return 1 * modifier;
-        return 0;
-    });
-
-    return list;
-});
 </script>
 
 <template>
@@ -332,18 +304,27 @@ const filteredAndSortedLeaderboard = computed(() => {
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
                     <h3 class="font-bold text-slate-200">Klasemen Kuis Petugas</h3>
-                    <div class="relative w-full md:w-72">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
-                            </svg>
-                        </span>
-                        <input
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Cari nama, jabatan, atau lokasi..."
-                            class="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-slate-700 transition-colors duration-200"
-                        />
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <select
+                            v-model="filterLocation"
+                            class="w-full sm:w-48 bg-slate-950 border border-slate-850 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-slate-700 transition-colors duration-200"
+                        >
+                            <option value="">Semua Lokasi</option>
+                            <option v-for="loc in locations" :key="loc" :value="loc">{{ loc }}</option>
+                        </select>
+                        <div class="relative w-full sm:w-64">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                                </svg>
+                            </span>
+                            <input
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="Cari nama, jabatan..."
+                                class="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-slate-700 transition-colors duration-200"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -389,12 +370,12 @@ const filteredAndSortedLeaderboard = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr v-for="(row, idx) in filteredAndSortedLeaderboard" :key="row.user_id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                            <tr v-for="(row, idx) in leaderboard.data" :key="row.user_id" class="hover:bg-slate-800/30 transition-colors duration-150">
                                 <td class="py-4 px-4 text-center font-bold">
-                                    <span v-if="idx === 0 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
-                                    <span v-else-if="idx === 1 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
-                                    <span v-else-if="idx === 2 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
-                                    <span v-else class="text-slate-400">{{ idx + 1 }}</span>
+                                    <span v-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 0 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
+                                    <span v-else-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 1 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
+                                    <span v-else-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 2 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
+                                    <span v-else class="text-slate-400">{{ (leaderboard.current_page - 1) * leaderboard.per_page + idx + 1 }}</span>
                                 </td>
                                 <td class="py-4 px-4 font-semibold text-slate-200">
                                     {{ row.name }}
@@ -431,13 +412,18 @@ const filteredAndSortedLeaderboard = computed(() => {
                                     </span>
                                 </td>
                             </tr>
-                            <tr v-if="filteredAndSortedLeaderboard.length === 0">
+                            <tr v-if="leaderboard.data.length === 0">
                                 <td colspan="10" class="py-8 text-center text-slate-500 text-xs">
                                     Tidak ada data kuis untuk pencarian atau periode ini.
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Section -->
+                <div class="mt-6 flex justify-center">
+                    <Pagination :links="leaderboard.links" />
                 </div>
             </div>
         </div>
