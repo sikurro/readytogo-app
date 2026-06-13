@@ -20,11 +20,8 @@ defineProps({
             <div v-if="quizzes && quizzes.length > 0" class="space-y-6">
                 <div v-for="quiz in quizzes" :key="quiz.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl hover:border-slate-700/80 transition-all relative overflow-hidden">
                     
-                    <div v-if="quiz.is_daily_quiz" class="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black px-3 py-1.5 text-[10px] tracking-widest uppercase rounded-bl-xl shadow-md">
+                    <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black px-3 py-1.5 text-[10px] tracking-widest uppercase rounded-bl-xl shadow-md">
                         KUIS HARIAN
-                    </div>
-                    <div v-else class="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black px-3 py-1.5 text-[10px] tracking-widest uppercase rounded-bl-xl shadow-md">
-                        EVENT QUIZ
                     </div>
 
                     <h3 class="text-lg font-bold text-slate-100 mb-1 pr-24 leading-snug">{{ quiz.title }}</h3>

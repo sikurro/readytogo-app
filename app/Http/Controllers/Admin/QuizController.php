@@ -35,7 +35,9 @@ class QuizController extends Controller
             'duration_minutes' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'is_daily_quiz' => 'boolean',
-            'daily_question_limit' => 'nullable|integer|min:1'
+            'daily_question_limit' => 'nullable|integer|min:1',
+            'start_time' => 'nullable|date',
+            'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
         Quiz::create($request->all());
@@ -57,7 +59,9 @@ class QuizController extends Controller
             'duration_minutes' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'is_daily_quiz' => 'boolean',
-            'daily_question_limit' => 'nullable|integer|min:1'
+            'daily_question_limit' => 'nullable|integer|min:1',
+            'start_time' => 'nullable|date',
+            'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
         $quiz->update($request->all());

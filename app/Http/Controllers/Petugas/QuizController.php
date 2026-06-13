@@ -14,7 +14,7 @@ class QuizController extends Controller
 {
     public function index()
     {
-        $quizzes = Quiz::where('is_active', true)->get();
+        $quizzes = Quiz::where('is_active', true)->where('is_daily_quiz', true)->get();
         $userId = Auth::id();
         
         $quizzesWithStatus = $quizzes->map(function ($quiz) use ($userId) {
@@ -36,6 +36,16 @@ class QuizController extends Controller
     {
         if (!$quiz->is_active) {
             return redirect()->route('quiz.index')->with('error', 'Kuis tidak tersedia.');
+        }
+
+        if (!$quiz->is_daily_quiz) {
+            $now = now();
+            if ($quiz->start_time && $now->lt($quiz->start_time)) {
+                return redirect()->route('dashboard')->with('error', 'Event kuis belum dimulai.');
+            }
+            if ($quiz->end_time && $now->gt($quiz->end_time)) {
+                return redirect()->route('dashboard')->with('error', 'Event kuis sudah berakhir.');
+            }
         }
 
         $isDemo = $request->query('demo') === '1';

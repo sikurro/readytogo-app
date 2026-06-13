@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({
     auth: Object,
+    activeEventQuiz: Object,
 });
 
 const today = new Date().toLocaleDateString('id-ID', {
@@ -28,6 +29,41 @@ const today = new Date().toLocaleDateString('id-ID', {
                     <h3 class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Selamat Bekerja,</h3>
                     <h2 class="text-lg font-bold text-slate-100 tracking-tight">{{ auth.user.name }}</h2>
                     <p class="text-xs text-amber-500 font-semibold mt-0.5">{{ auth.user.position || 'Petugas Lapangan' }}</p>
+                </div>
+            </div>
+
+            <!-- Event Quiz Interactive Banner -->
+            <div v-if="activeEventQuiz" class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-1 shadow-2xl shadow-indigo-500/30 animate-[pulse_3s_ease-in-out_infinite]">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIi8+PC9zdmc+')] opacity-30"></div>
+                
+                <div class="relative bg-slate-950/80 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                    <div class="flex items-start justify-between">
+                        <div class="space-y-1">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-black tracking-widest uppercase border border-indigo-500/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+                                SPECIAL EVENT LIVE!
+                            </span>
+                            <h2 class="text-xl font-black text-white leading-tight mt-2">{{ activeEventQuiz.title }}</h2>
+                            <p class="text-xs text-indigo-200 font-medium line-clamp-1">Tema: {{ activeEventQuiz.theme }}</p>
+                        </div>
+                        <div class="h-10 w-10 shrink-0 bg-indigo-500/20 rounded-full flex items-center justify-center border border-indigo-500/30">
+                            <span class="text-xl">🏆</span>
+                        </div>
+                    </div>
+                    
+                    <div v-if="activeEventQuiz.end_time" class="mt-3 text-[10px] text-indigo-300 font-semibold flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Tersedia s.d {{ new Date(activeEventQuiz.end_time).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'}) }}
+                    </div>
+
+                    <Link 
+                        :href="route('quiz.play', activeEventQuiz.id)" 
+                        class="mt-4 block w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white font-black py-3 px-4 rounded-lg text-center text-sm shadow-lg shadow-indigo-500/25 transition-all active:scale-[0.98]"
+                    >
+                        IKUTI EVENT SEKARANG
+                    </Link>
                 </div>
             </div>
 

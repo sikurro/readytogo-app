@@ -1,6 +1,8 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 const form = useForm({
     title: '',
@@ -9,10 +11,23 @@ const form = useForm({
     is_active: true,
     is_daily_quiz: false,
     daily_question_limit: 10,
+    start_time: '',
+    end_time: '',
 });
 
 const submit = () => {
     form.post(route('admin.quizzes.store'));
+};
+
+const formatDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
 };
 </script>
 
@@ -120,6 +135,40 @@ const submit = () => {
                         class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                     />
                     <InputError :message="form.errors.duration_minutes" class="mt-1" />
+                </div>
+
+                <!-- Event Schedule Inputs (shows only if it is NOT a daily quiz) -->
+                <div v-if="!form.is_daily_quiz" class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-blue-950/20 border border-blue-900/40 rounded-xl">
+                    <div class="col-span-1 sm:col-span-2">
+                        <h4 class="text-base font-bold text-blue-400">Jadwal Event Kuis</h4>
+                        <p class="text-sm text-slate-400 mt-1">Tentukan kapan kuis ini bisa diakses oleh petugas. Kosongkan jika kuis selalu tersedia.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
+                        <VueDatePicker 
+                            v-model="form.start_time" 
+                            :format="formatDate"
+                            model-type="yyyy-MM-dd HH:mm:ss"
+                            dark
+                            text-input
+                            :time-config="{ timePickerInline: true }"
+                            placeholder="Pilih Waktu Mulai"
+                        />
+                        <InputError :message="form.errors.start_time" class="mt-1" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
+                        <VueDatePicker 
+                            v-model="form.end_time" 
+                            :format="formatDate"
+                            model-type="yyyy-MM-dd HH:mm:ss"
+                            dark
+                            text-input
+                            :time-config="{ timePickerInline: true }"
+                            placeholder="Pilih Waktu Selesai"
+                        />
+                        <InputError :message="form.errors.end_time" class="mt-1" />
+                    </div>
                 </div>
 
                 <!-- Active Toggle Option -->
