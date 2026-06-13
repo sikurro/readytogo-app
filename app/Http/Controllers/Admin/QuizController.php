@@ -38,7 +38,23 @@ class QuizController extends Controller
             $perPage = 10;
         }
 
-        $quizzes = $query->latest()->paginate($perPage)->withQueryString();
+        $sortField = $request->input('sort_field', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+
+        $sortMap = [
+            'judul' => 'title',
+            'tipe' => 'is_daily_quiz',
+            'tema' => 'theme',
+            'durasi' => 'duration_minutes',
+            'waktu' => 'start_time',
+            'status' => 'is_active',
+            'created_at' => 'created_at',
+        ];
+
+        $orderColumn = $sortMap[$sortField] ?? 'created_at';
+        $orderDirection = in_array(strtolower($sortDirection), ['asc', 'desc']) ? $sortDirection : 'desc';
+
+        $quizzes = $query->orderBy($orderColumn, $orderDirection)->paginate($perPage)->withQueryString();
 
         return Inertia::render('Admin/Quiz/Index', [
             'quizzes' => $quizzes,
@@ -46,6 +62,8 @@ class QuizController extends Controller
                 'search' => $request->input('search', ''),
                 'status' => $status,
                 'per_page' => $perPage,
+                'sort_field' => $sortField,
+                'sort_direction' => $sortDirection,
             ],
         ]);
     }

@@ -12,12 +12,16 @@ const props = defineProps({
 const search = ref(props.filters?.search || '');
 const status = ref(props.filters?.status || 'aktif');
 const per_page = ref(props.filters?.per_page || '10');
+const sortField = ref(props.filters?.sort_field || 'created_at');
+const sortDirection = ref(props.filters?.sort_direction || 'desc');
 
 const handleSearch = () => {
     router.get(route('admin.quizzes.index'), {
         search: search.value,
         status: status.value,
         per_page: per_page.value,
+        sort_field: sortField.value,
+        sort_direction: sortDirection.value,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -28,6 +32,16 @@ const handleSearch = () => {
 watch([search, status, per_page], () => {
     handleSearch();
 });
+
+const sortBy = (field) => {
+    if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortField.value = field;
+        sortDirection.value = 'desc';
+    }
+    handleSearch();
+};
 
 const deleteQuiz = (id) => {
     if(confirm('Apakah Anda yakin ingin menghapus kuis ini?')) {
@@ -105,17 +119,51 @@ const formatDateTime = (dateString) => {
                     <table class="min-w-full text-slate-300">
                         <thead>
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                                <th class="py-3 px-4">Judul Kuis</th>
-                                <th class="py-3 px-4 text-center">Tipe</th>
-                                <th class="py-3 px-4">Tema</th>
-                                <th class="py-3 px-4 text-center">Durasi / Limit Soal</th>
-                                <th class="py-3 px-4 text-center">Waktu Event</th>
-                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-center w-12">No</th>
+                                <th @click="sortBy('judul')" class="py-3 px-4 cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center gap-1">
+                                        Judul Kuis
+                                        <span v-if="sortField === 'judul'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('tipe')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Tipe
+                                        <span v-if="sortField === 'tipe'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('tema')" class="py-3 px-4 cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center gap-1">
+                                        Tema
+                                        <span v-if="sortField === 'tema'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('durasi')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Durasi / Limit Soal
+                                        <span v-if="sortField === 'durasi'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('waktu')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Waktu Event
+                                        <span v-if="sortField === 'waktu'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('status')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-slate-200 transition-colors duration-150">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Status
+                                        <span v-if="sortField === 'status'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
                                 <th class="py-3 px-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr v-for="quiz in quizzes.data" :key="quiz.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                            <tr v-for="(quiz, index) in quizzes.data" :key="quiz.id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                                <td class="py-4 px-4 text-center font-medium text-slate-400">
+                                    {{ quizzes.from + index }}
+                                </td>
                                 <td class="py-4 px-4 font-medium text-slate-200">
                                     {{ quiz.title }}
                                 </td>
@@ -187,7 +235,7 @@ const formatDateTime = (dateString) => {
                                 </td>
                             </tr>
                             <tr v-if="quizzes.data.length === 0">
-                                <td colspan="6" class="py-8 text-center text-slate-500">Belum ada data kuis.</td>
+                                <td colspan="8" class="py-8 text-center text-slate-500">Belum ada data kuis.</td>
                             </tr>
                         </tbody>
                     </table>
