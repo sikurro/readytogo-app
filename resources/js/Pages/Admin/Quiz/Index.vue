@@ -172,7 +172,7 @@ const formatDateTime = (dateString) => {
                                         Kuis Harian
                                     </span>
                                     <span v-else class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                                        Event Quiz
+                                        Kuis Event
                                     </span>
                                 </td>
                                 <td class="py-4 px-4">
@@ -184,9 +184,19 @@ const formatDateTime = (dateString) => {
                                     <div v-else class="text-xs text-slate-500 mt-0.5">{{ quiz.questions_count }} Soal Terpilih</div>
                                 </td>
                                 <td class="py-4 px-4 text-center whitespace-nowrap">
-                                    <div v-if="!quiz.is_daily_quiz && quiz.start_time">
-                                        <div class="text-xs text-slate-300">Mulai: {{ formatDateTime(quiz.start_time) }}</div>
-                                        <div class="text-xs text-slate-300 mt-1">Selesai: {{ formatDateTime(quiz.end_time) }}</div>
+                                    <div v-if="!quiz.is_daily_quiz && quiz.start_time" class="flex flex-col items-center justify-center gap-1.5">
+                                        <div class="flex items-center gap-1.5 text-xs text-slate-300" title="Waktu Mulai">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-emerald-400">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            {{ formatDateTime(quiz.start_time) }}
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-xs text-slate-300" title="Waktu Selesai">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-rose-400">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a1.5 1.5 0 0 0 1.129-1.455V6.305c0-1.013-.882-1.785-1.875-1.579l-3.114.732a9 9 0 0 1-6.086-.71l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                            </svg>
+                                            {{ formatDateTime(quiz.end_time) }}
+                                        </div>
                                     </div>
                                     <div v-else class="text-xs text-slate-500">-</div>
                                 </td>
