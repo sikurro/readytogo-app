@@ -74,7 +74,15 @@ class LeaderboardController extends Controller
 
         $month = $request->filled('month') ? $request->input('month') : date('Y-m');
 
-        $leaderboard = $this->getLeaderboardData($month);
+        // Fetch ALL leaderboard data first to calculate overall metrics and filters
+        $fullLeaderboard = $this->getLeaderboardData($month);
+
+        // Get unique locations from the full leaderboard for the dropdown filter
+        $locations = $fullLeaderboard->pluck('location')
+            ->filter(fn($loc) => $loc !== 'Tidak Diketahui')
+            ->unique()
+            ->sort()
+            ->values();
 
         // Fetch all attempts in that month to calculate daily progress
         $attempts = QuizAttempt::with(['quiz'])
@@ -123,20 +131,76 @@ class LeaderboardController extends Controller
             ];
         }
 
-        // Pie Chart Data: Overall correct vs wrong
-        $totalCorrectAll = $leaderboard->sum('total_correct');
-        $totalWrongAll = $leaderboard->sum('total_wrong');
+        // Pie Chart Data: Overall correct vs wrong (calculated from full leaderboard)
+        $totalCorrectAll = $fullLeaderboard->sum('total_correct');
+        $totalWrongAll = $fullLeaderboard->sum('total_wrong');
         $pieChartData = [
             'correct' => $totalCorrectAll,
             'wrong' => $totalWrongAll,
         ];
 
+        // Apply filters & sorting for the paginated leaderboard table
+        $filteredLeaderboard = $fullLeaderboard;
+
+        $search = $request->input('search');
+        if ($search) {
+            $searchLower = strtolower(trim($search));
+            $filteredLeaderboard = $filteredLeaderboard->filter(function ($row) use ($searchLower) {
+                return str_contains(strtolower($row['name'] ?? ''), $searchLower) ||
+                       str_contains(strtolower($row['position'] ?? ''), $searchLower) ||
+                       str_contains(strtolower($row['location'] ?? ''), $searchLower);
+            });
+        }
+
+        $locationFilter = $request->input('location');
+        if ($locationFilter) {
+            $filteredLeaderboard = $filteredLeaderboard->filter(function ($row) use ($locationFilter) {
+                return ($row['location'] ?? '') === $locationFilter;
+            });
+        }
+
+        $sortKey = $request->input('sort_key', 'score');
+        $sortDir = $request->input('sort_dir', 'desc');
+
+        $sortMap = [
+            'score' => 'total_score',
+            'total_quizzes' => 'total_questions',
+            'correct' => 'total_correct',
+            'wrong' => 'total_wrong',
+            'accuracy' => 'percentage_correct',
+        ];
+
+        $sortByField = $sortMap[$sortKey] ?? 'total_score';
+        
+        $filteredLeaderboard = $filteredLeaderboard->sortBy(function ($row) use ($sortByField) {
+            return $row[$sortByField];
+        }, SORT_REGULAR, $sortDir === 'desc')->values();
+
+        // Paginate the collection
+        $perPage = 10;
+        $page = $request->input('page', 1);
+        $paginatedLeaderboard = new \Illuminate\Pagination\LengthAwarePaginator(
+            $filteredLeaderboard->forPage($page, $perPage)->values(),
+            $filteredLeaderboard->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
         return Inertia::render('Admin/Leaderboard/Index', [
-            'leaderboard' => $leaderboard,
+            'leaderboard' => $paginatedLeaderboard,
+            'locations' => $locations,
             'dailyProgressData' => $dailyProgressData,
             'pieChartData' => $pieChartData,
             'filters' => [
                 'month' => $month,
+                'search' => $search,
+                'location' => $locationFilter,
+                'sort_key' => $sortKey,
+                'sort_dir' => $sortDir,
             ],
         ]);
     }
@@ -149,7 +213,44 @@ class LeaderboardController extends Controller
 
         $month = $request->filled('month') ? $request->input('month') : date('Y-m');
 
-        $leaderboard = $this->getLeaderboardData($month);
+        $fullLeaderboard = $this->getLeaderboardData($month);
+
+        // Apply filters
+        $filteredLeaderboard = $fullLeaderboard;
+
+        $search = $request->input('search');
+        if ($search) {
+            $searchLower = strtolower(trim($search));
+            $filteredLeaderboard = $filteredLeaderboard->filter(function ($row) use ($searchLower) {
+                return str_contains(strtolower($row['name'] ?? ''), $searchLower) ||
+                       str_contains(strtolower($row['position'] ?? ''), $searchLower) ||
+                       str_contains(strtolower($row['location'] ?? ''), $searchLower);
+            });
+        }
+
+        $locationFilter = $request->input('location');
+        if ($locationFilter) {
+            $filteredLeaderboard = $filteredLeaderboard->filter(function ($row) use ($locationFilter) {
+                return ($row['location'] ?? '') === $locationFilter;
+            });
+        }
+
+        $sortKey = $request->input('sort_key', 'score');
+        $sortDir = $request->input('sort_dir', 'desc');
+
+        $sortMap = [
+            'score' => 'total_score',
+            'total_quizzes' => 'total_questions',
+            'correct' => 'total_correct',
+            'wrong' => 'total_wrong',
+            'accuracy' => 'percentage_correct',
+        ];
+
+        $sortByField = $sortMap[$sortKey] ?? 'total_score';
+        
+        $filteredLeaderboard = $filteredLeaderboard->sortBy(function ($row) use ($sortByField) {
+            return $row[$sortByField];
+        }, SORT_REGULAR, $sortDir === 'desc')->values();
 
         $filename = 'leaderboard';
         if ($month) {
@@ -158,7 +259,7 @@ class LeaderboardController extends Controller
         $filename .= '-' . now()->format('Ymd_His') . '.xlsx';
 
         return Excel::download(
-            new LeaderboardExport($leaderboard),
+            new LeaderboardExport($filteredLeaderboard),
             $filename
         );
     }
