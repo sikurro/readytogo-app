@@ -61,7 +61,11 @@ class LeaderboardController extends Controller
         })
         ->filter()
         ->sortByDesc('total_score')
-        ->values();
+        ->values()
+        ->map(function ($row, $index) {
+            $row['rank'] = $index + 1;
+            return $row;
+        });
 
         return $leaderboard;
     }

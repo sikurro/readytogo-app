@@ -372,10 +372,10 @@ const sortBy = (key) => {
                         <tbody class="divide-y divide-slate-800 text-sm">
                             <tr v-for="(row, idx) in leaderboard.data" :key="row.user_id" class="hover:bg-slate-800/30 transition-colors duration-150">
                                 <td class="py-4 px-4 text-center font-bold">
-                                    <span v-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 0 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
-                                    <span v-else-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 1 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
-                                    <span v-else-if="((leaderboard.current_page - 1) * leaderboard.per_page + idx) === 2 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
-                                    <span v-else class="text-slate-400">{{ (leaderboard.current_page - 1) * leaderboard.per_page + idx + 1 }}</span>
+                                    <span v-if="row.rank === 1 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
+                                    <span v-else-if="row.rank === 2 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
+                                    <span v-else-if="row.rank === 3 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
+                                    <span v-else class="text-slate-400">{{ row.rank }}</span>
                                 </td>
                                 <td class="py-4 px-4 font-semibold text-slate-200">
                                     {{ row.name }}
