@@ -22,6 +22,17 @@ const form = useForm({
 const submit = () => {
     form.put(route('admin.quizzes.update', props.quiz.id));
 };
+
+const formatDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+};
 </script>
 
 <template>
@@ -140,7 +151,7 @@ const submit = () => {
                         <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
                         <VueDatePicker 
                             v-model="form.start_time" 
-                            format="dd/MM/yyyy, HH:mm"
+                            :format="formatDate"
                             model-type="yyyy-MM-dd HH:mm:ss"
                             dark
                             text-input
@@ -153,7 +164,7 @@ const submit = () => {
                         <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
                         <VueDatePicker 
                             v-model="form.end_time" 
-                            format="dd/MM/yyyy, HH:mm"
+                            :format="formatDate"
                             model-type="yyyy-MM-dd HH:mm:ss"
                             dark
                             text-input
