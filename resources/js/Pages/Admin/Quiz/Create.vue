@@ -1,6 +1,8 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 const form = useForm({
     title: '',
@@ -132,19 +134,27 @@ const submit = () => {
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
-                        <input 
+                        <VueDatePicker 
                             v-model="form.start_time" 
-                            type="datetime-local" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                            format="yyyy-MM-dd HH:mm"
+                            model-type="yyyy-MM-dd HH:mm:ss"
+                            dark
+                            text-input
+                            auto-apply
+                            placeholder="Pilih Waktu Mulai"
                         />
                         <InputError :message="form.errors.start_time" class="mt-1" />
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
-                        <input 
+                        <VueDatePicker 
                             v-model="form.end_time" 
-                            type="datetime-local" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                            format="yyyy-MM-dd HH:mm"
+                            model-type="yyyy-MM-dd HH:mm:ss"
+                            dark
+                            text-input
+                            auto-apply
+                            placeholder="Pilih Waktu Selesai"
                         />
                         <InputError :message="form.errors.end_time" class="mt-1" />
                     </div>
