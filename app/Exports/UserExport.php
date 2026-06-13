@@ -10,26 +10,26 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class UserExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $roleId;
-    protected $location;
+    protected $locationId;
     protected $search;
 
-    public function __construct($roleId = null, $location = null, $search = null)
+    public function __construct($roleId = null, $locationId = null, $search = null)
     {
         $this->roleId = $roleId;
-        $this->location = $location;
+        $this->locationId = $locationId;
         $this->search = $search;
     }
 
     public function collection()
     {
-        $query = User::with('role');
+        $query = User::with(['role', 'location']);
 
         if ($this->roleId) {
             $query->where('role_id', $this->roleId);
         }
 
-        if ($this->location) {
-            $query->where('location', $this->location);
+        if ($this->locationId) {
+            $query->where('location_id', $this->locationId);
         }
 
         if ($this->search) {
@@ -64,7 +64,7 @@ class UserExport implements FromCollection, WithHeadings, WithMapping
             $user->nip,
             $user->email,
             $user->position,
-            $user->location,
+            $user->location ? $user->location->name : '-',
             $user->role ? $user->role->name : '-',
             $user->status_fit ? 'Fit' : 'Unfit'
         ];

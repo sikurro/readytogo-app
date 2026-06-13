@@ -21,14 +21,14 @@ const props = defineProps({
 // Filters
 const search = ref(props.filters?.search || '');
 const role_id = ref(props.filters?.role_id || '');
-const location = ref(props.filters?.location || '');
+const location_id = ref(props.filters?.location_id || '');
 const per_page = ref(props.filters?.per_page || '10');
 
 const handleSearch = () => {
     router.get(route('admin.users.index'), {
         search: search.value,
         role_id: role_id.value,
-        location: location.value,
+        location_id: location_id.value,
         per_page: per_page.value,
     }, {
         preserveState: true,
@@ -37,7 +37,7 @@ const handleSearch = () => {
     });
 };
 
-watch([search, role_id, location, per_page], () => {
+watch([search, role_id, location_id, per_page], () => {
     handleSearch();
 });
 
@@ -58,7 +58,7 @@ const createForm = useForm({
     password: '',
     role_id: '',
     position: '',
-    location: '',
+    location_id: '',
     status_fit: true,
     avatar: null,
 });
@@ -79,7 +79,7 @@ const editForm = useForm({
     email: '',
     role_id: '',
     position: '',
-    location: '',
+    location_id: '',
     status_fit: true,
     avatar: null,
     remove_avatar: false,
@@ -93,7 +93,7 @@ const openEditModal = (user) => {
     editForm.email = user.email;
     editForm.role_id = user.role_id;
     editForm.position = user.position || '';
-    editForm.location = user.location || '';
+    editForm.location_id = user.location_id || '';
     editForm.status_fit = !!user.status_fit;
     editForm.avatar = null;
     editForm.remove_avatar = false;
@@ -232,9 +232,9 @@ const submitDelete = () => {
                         </select>
                     </div>
                     <div class="w-full md:w-48 relative">
-                        <select v-model="location" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                        <select v-model="location_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
                             <option value="">Semua Unit/Lokasi Kerja</option>
-                            <option v-for="loc in locations" :key="loc" :value="loc">{{ loc }}</option>
+                            <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
                         </select>
                     </div>
                     <div class="w-full md:w-32 relative">
@@ -290,7 +290,7 @@ const submitDelete = () => {
                                     <div class="text-xs text-slate-400">{{ u.position || '-' }}</div>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <div class="font-medium text-slate-300">{{ u.location || '-' }}</div>
+                                    <div class="font-medium text-slate-300">{{ u.location ? u.location.name : '-' }}</div>
                                     <div class="inline-flex mt-1 items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase bg-slate-800 text-slate-300 border border-slate-700">
                                         {{ u.role ? u.role.name : '-' }}
                                     </div>
@@ -398,8 +398,11 @@ const submitDelete = () => {
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <InputLabel for="create_location" value="Unit / Lokasi Kerja" class="text-slate-350" />
-                                        <TextInput id="create_location" type="text" placeholder="Contoh: Kantor Pusat, Cabang Samarinda" class="mt-1 block w-full bg-slate-950 border-slate-800 text-slate-250 focus:border-blue-500" v-model="createForm.location" />
-                                        <InputError :message="createForm.errors.location" class="mt-1" />
+                                        <select id="create_location" class="mt-1 block w-full bg-slate-950 border-slate-800 rounded-md shadow-sm text-slate-250 focus:border-blue-500" v-model="createForm.location_id" required>
+                                            <option value="">Pilih Lokasi/Unit Kerja</option>
+                                            <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
+                                        </select>
+                                        <InputError :message="createForm.errors.location_id" class="mt-1" />
                                     </div>
                                     <div>
                                         <InputLabel for="create_status_fit" value="Status Kebugaran" class="text-slate-350" />
@@ -483,8 +486,11 @@ const submitDelete = () => {
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <InputLabel for="edit_location" value="Unit / Lokasi Kerja" class="text-slate-350" />
-                                        <TextInput id="edit_location" type="text" class="mt-1 block w-full bg-slate-950 border-slate-800 text-slate-250 focus:border-amber-500" v-model="editForm.location" />
-                                        <InputError :message="editForm.errors.location" class="mt-1" />
+                                        <select id="edit_location" class="mt-1 block w-full bg-slate-950 border-slate-800 rounded-md shadow-sm text-slate-250 focus:border-amber-500" v-model="editForm.location_id" required>
+                                            <option value="">Pilih Lokasi/Unit Kerja</option>
+                                            <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
+                                        </select>
+                                        <InputError :message="editForm.errors.location_id" class="mt-1" />
                                     </div>
                                     <div>
                                         <InputLabel for="edit_status_fit" value="Status Kebugaran" class="text-slate-350" />

@@ -30,7 +30,7 @@ class UserTemplateExport implements FromArray, WithHeadings
                 'budi.santoso@pelabuhan.co.id',
                 'password123',
                 'Supervisor Lapangan',
-                'Cabang Samarinda',
+                'Samarinda',
                 'Petugas',
                 'Fit'
             ],

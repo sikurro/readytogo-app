@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
 
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('locations', App\Http\Controllers\Admin\LocationController::class);
     Route::resource('quizzes', App\Http\Controllers\Admin\QuizController::class);
     Route::post('quizzes/{quiz}/attach-question', [App\Http\Controllers\Admin\QuizController::class, 'attachQuestion'])->name('quizzes.attach_question');
     Route::post('quizzes/{quiz}/detach-question', [App\Http\Controllers\Admin\QuizController::class, 'detachQuestion'])->name('quizzes.detach_question');
