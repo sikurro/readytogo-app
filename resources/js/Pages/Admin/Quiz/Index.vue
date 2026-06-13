@@ -1,14 +1,40 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import Pagination from '@/Components/Pagination.vue';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
     quizzes: Object,
+    filters: Object,
+});
+
+const search = ref(props.filters?.search || '');
+const status = ref(props.filters?.status || 'aktif');
+const per_page = ref(props.filters?.per_page || '10');
+
+const handleSearch = () => {
+    router.get(route('admin.quizzes.index'), {
+        search: search.value,
+        status: status.value,
+        per_page: per_page.value,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    });
+};
+
+watch([search, status, per_page], () => {
+    handleSearch();
 });
 
 const deleteQuiz = (id) => {
     if(confirm('Apakah Anda yakin ingin menghapus kuis ini?')) {
-        useForm({}).delete(route('admin.quizzes.destroy', id));
+        useForm({}).delete(route('admin.quizzes.destroy', id), {
+            preserveScroll: true,
+            preserveState: true,
+        });
     }
 }
 const formatDateTime = (dateString) => {
@@ -44,6 +70,34 @@ const formatDateTime = (dateString) => {
                         </svg>
                         Tambah Kuis Baru
                     </Link>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-col md:flex-row md:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                    <div class="flex-1 relative min-w-[200px]">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-slate-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                        <input v-model="search" type="text" placeholder="Cari kuis..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
+                    </div>
+                    <div class="w-full md:w-48 relative">
+                        <select v-model="status" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="semua">Semua Status</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 relative">
+                        <select v-model="per_page" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="10">10 Kuis</option>
+                            <option value="15">15 Kuis</option>
+                            <option value="25">25 Kuis</option>
+                            <option value="50">50 Kuis</option>
+                            <option value="100">100 Kuis</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Data Table -->
@@ -137,6 +191,19 @@ const formatDateTime = (dateString) => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Section -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-slate-800 pt-6" v-if="quizzes.data.length > 0">
+                    <div class="text-sm text-slate-400">
+                        Menampilkan 
+                        <span class="font-medium text-slate-300">{{ quizzes.from }}</span> 
+                        sampai 
+                        <span class="font-medium text-slate-300">{{ quizzes.to }}</span> 
+                        dari 
+                        <span class="font-medium text-slate-300">{{ quizzes.total }}</span> kuis
+                    </div>
+                    <Pagination :links="quizzes.links" />
                 </div>
             </div>
         </div>

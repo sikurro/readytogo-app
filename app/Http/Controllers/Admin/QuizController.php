@@ -14,11 +14,39 @@ use App\Models\Question;
 
 class QuizController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $quizzes = Quiz::withCount('questions')->latest()->paginate(10);
+        $query = Quiz::withCount('questions');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('theme', 'like', '%' . $search . '%');
+            });
+        }
+
+        $status = $request->input('status', 'aktif');
+        if ($status === 'aktif') {
+            $query->where('is_active', true);
+        } elseif ($status === 'nonaktif') {
+            $query->where('is_active', false);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        if (!in_array($perPage, [10, 15, 25, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $quizzes = $query->latest()->paginate($perPage)->withQueryString();
+
         return Inertia::render('Admin/Quiz/Index', [
-            'quizzes' => $quizzes
+            'quizzes' => $quizzes,
+            'filters' => [
+                'search' => $request->input('search', ''),
+                'status' => $status,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -71,7 +99,7 @@ class QuizController extends Controller
     public function destroy(Quiz $quiz)
     {
         $quiz->delete();
-        return redirect()->route('admin.quizzes.index')->with('success', 'Kuis berhasil dihapus.');
+        return redirect()->back()->with('success', 'Kuis berhasil dihapus.');
     }
 
     public function show(Request $request, Quiz $quiz)
