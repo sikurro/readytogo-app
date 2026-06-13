@@ -201,6 +201,72 @@ const pieOptions = {
 const hasDailyData = computed(() => {
     return props.dailyProgressData.some(item => item.total_attempts > 0);
 });
+
+// Search & Sorting States
+const searchQuery = ref('');
+const sortKey = ref('score');
+const sortDirection = ref('desc');
+
+const sortBy = (key) => {
+    if (sortKey.value === key) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortKey.value = key;
+        sortDirection.value = 'desc';
+    }
+};
+
+const filteredAndSortedLeaderboard = computed(() => {
+    let list = [...props.leaderboard];
+
+    // Filter
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase().trim();
+        list = list.filter(row => {
+            const name = (row.name || '').toLowerCase();
+            const position = (row.position || '').toLowerCase();
+            const location = (row.location || '').toLowerCase();
+            return name.includes(query) || position.includes(query) || location.includes(query);
+        });
+    }
+
+    // Sort
+    list.sort((a, b) => {
+        let modifier = sortDirection.value === 'desc' ? -1 : 1;
+        let fieldA, fieldB;
+
+        switch (sortKey.value) {
+            case 'score':
+                fieldA = Number(a.total_score || 0);
+                fieldB = Number(b.total_score || 0);
+                break;
+            case 'total_quizzes':
+                fieldA = Number(a.total_questions || 0);
+                fieldB = Number(b.total_questions || 0);
+                break;
+            case 'correct':
+                fieldA = Number(a.total_correct || 0);
+                fieldB = Number(b.total_correct || 0);
+                break;
+            case 'wrong':
+                fieldA = Number(a.total_wrong || 0);
+                fieldB = Number(b.total_wrong || 0);
+                break;
+            case 'accuracy':
+                fieldA = Number(a.percentage_correct || 0);
+                fieldB = Number(b.percentage_correct || 0);
+                break;
+            default:
+                return 0;
+        }
+
+        if (fieldA < fieldB) return -1 * modifier;
+        if (fieldA > fieldB) return 1 * modifier;
+        return 0;
+    });
+
+    return list;
+});
 </script>
 
 <template>
@@ -264,7 +330,22 @@ const hasDailyData = computed(() => {
 
             <!-- Leaderboard Table -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <h3 class="font-bold text-slate-200 border-b border-slate-800 pb-3">Klasemen Kuis Petugas</h3>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-slate-200">Klasemen Kuis Petugas</h3>
+                    <div class="relative w-full md:w-72">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                            </svg>
+                        </span>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Cari nama, jabatan, atau lokasi..."
+                            class="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-slate-700 transition-colors duration-200"
+                        />
+                    </div>
+                </div>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-slate-300">
@@ -275,19 +356,44 @@ const hasDailyData = computed(() => {
                                 <th class="py-3 px-4">NIP</th>
                                 <th class="py-3 px-4">Jabatan</th>
                                 <th class="py-3 px-4">Lokasi/Unit Kerja</th>
-                                <th class="py-3 px-4 text-center">Total Skor</th>
-                                <th class="py-3 px-4 text-center">Total Soal</th>
-                                <th class="py-3 px-4 text-center">Benar</th>
-                                <th class="py-3 px-4 text-center">Salah</th>
-                                <th class="py-3 px-4 text-center">Persentase (%)</th>
+                                <th @click="sortBy('score')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Total Skor
+                                        <span v-if="sortKey === 'score'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('total_quizzes')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Total Soal
+                                        <span v-if="sortKey === 'total_quizzes'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('correct')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Benar
+                                        <span v-if="sortKey === 'correct'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('wrong')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Salah
+                                        <span v-if="sortKey === 'wrong'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('accuracy')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Persentase (%)
+                                        <span v-if="sortKey === 'accuracy'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr v-for="(row, idx) in leaderboard" :key="row.user_id" class="hover:bg-slate-800/30 transition-colors duration-150">
+                            <tr v-for="(row, idx) in filteredAndSortedLeaderboard" :key="row.user_id" class="hover:bg-slate-800/30 transition-colors duration-150">
                                 <td class="py-4 px-4 text-center font-bold">
-                                    <span v-if="idx === 0" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
-                                    <span v-else-if="idx === 1" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
-                                    <span v-else-if="idx === 2" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
+                                    <span v-if="idx === 0 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 mx-auto text-xs" title="Juara 1">1</span>
+                                    <span v-else-if="idx === 1 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-950 mx-auto text-xs" title="Juara 2">2</span>
+                                    <span v-else-if="idx === 2 && sortKey === 'score' && sortDirection === 'desc'" class="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700 text-slate-100 mx-auto text-xs" title="Juara 3">3</span>
                                     <span v-else class="text-slate-400">{{ idx + 1 }}</span>
                                 </td>
                                 <td class="py-4 px-4 font-semibold text-slate-200">
@@ -325,9 +431,9 @@ const hasDailyData = computed(() => {
                                     </span>
                                 </td>
                             </tr>
-                            <tr v-if="leaderboard.length === 0">
+                            <tr v-if="filteredAndSortedLeaderboard.length === 0">
                                 <td colspan="10" class="py-8 text-center text-slate-500 text-xs">
-                                    Tidak ada data kuis untuk periode ini.
+                                    Tidak ada data kuis untuk pencarian atau periode ini.
                                 </td>
                             </tr>
                         </tbody>
