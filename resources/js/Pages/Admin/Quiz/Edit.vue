@@ -145,6 +145,7 @@ const submit = () => {
                             dark
                             text-input
                             auto-apply
+                            time-picker-inline
                             placeholder="Pilih Waktu Mulai"
                         />
                         <InputError :message="form.errors.start_time" class="mt-1" />
@@ -158,6 +159,7 @@ const submit = () => {
                             dark
                             text-input
                             auto-apply
+                            time-picker-inline
                             placeholder="Pilih Waktu Selesai"
                         />
                         <InputError :message="form.errors.end_time" class="mt-1" />
