@@ -4,6 +4,10 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
+const props = defineProps({
+    filters: Object,
+});
+
 const form = useForm({
     title: '',
     theme: '',
@@ -16,7 +20,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('admin.quizzes.store'));
+    form.post(route('admin.quizzes.store', props.filters));
 };
 
 const formatDate = (date) => {
@@ -42,7 +46,7 @@ const formatDate = (date) => {
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="flex items-center justify-between">
                 <Link 
-                    :href="route('admin.quizzes.index')" 
+                    :href="route('admin.quizzes.index', filters)" 
                     class="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors duration-200 text-sm font-medium"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -187,7 +191,7 @@ const formatDate = (date) => {
                 <!-- Actions -->
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
                     <Link 
-                        :href="route('admin.quizzes.index')" 
+                        :href="route('admin.quizzes.index', filters)" 
                         class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg font-medium text-sm transition-colors"
                     >
                         Batal

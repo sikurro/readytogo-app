@@ -12,6 +12,7 @@ const props = defineProps({
 
 const search = ref(props.filters?.search || '');
 const status = ref(props.filters?.status || 'aktif');
+const tipe = ref(props.filters?.tipe || 'semua');
 const per_page = ref(props.filters?.per_page || '10');
 const sortField = ref(props.filters?.sort_field || 'created_at');
 const sortDirection = ref(props.filters?.sort_direction || 'desc');
@@ -20,6 +21,7 @@ const handleSearch = () => {
     router.get(route('admin.quizzes.index'), {
         search: search.value,
         status: status.value,
+        tipe: tipe.value,
         per_page: per_page.value,
         sort_field: sortField.value,
         sort_direction: sortDirection.value,
@@ -30,7 +32,18 @@ const handleSearch = () => {
     });
 };
 
-watch([search, status, per_page], () => {
+// Sync refs ketika backend mengirim props.filters baru (misal: setelah delete redirect)
+watch(() => props.filters, (newFilters) => {
+    if (!newFilters) return;
+    search.value = newFilters.search || '';
+    status.value = newFilters.status || 'aktif';
+    tipe.value = newFilters.tipe || 'semua';
+    per_page.value = String(newFilters.per_page || '10');
+    sortField.value = newFilters.sort_field || 'created_at';
+    sortDirection.value = newFilters.sort_direction || 'desc';
+}, { deep: true });
+
+watch([search, status, tipe, per_page], () => {
     handleSearch();
 });
 
@@ -57,8 +70,18 @@ const confirmQuizDeletion = (id) => {
 const deleteQuiz = () => {
     isDeleting.value = true;
     router.delete(route('admin.quizzes.destroy', quizToDelete.value), {
+        data: {
+            _filters: {
+                search: search.value,
+                status: status.value,
+                tipe: tipe.value,
+                per_page: per_page.value,
+                sort_field: sortField.value,
+                sort_direction: sortDirection.value,
+            }
+        },
         preserveScroll: true,
-        preserveState: true,
+        preserveState: false,
         onSuccess: () => {
             confirmingQuizDeletion.value = false;
             quizToDelete.value = null;
@@ -94,7 +117,7 @@ const formatDateTime = (dateString) => {
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-bold text-slate-200">Daftar Kuis Tersedia</h3>
                     <Link 
-                        :href="route('admin.quizzes.create')"
+                        :href="route('admin.quizzes.create', { search, status, tipe, per_page, sort_field: sortField, sort_direction: sortDirection })"
                         class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg transition-colors duration-200 shadow-lg shadow-blue-900/30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -112,13 +135,20 @@ const formatDateTime = (dateString) => {
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                             </svg>
                         </div>
-                        <input v-model="search" type="text" placeholder="Cari kuis..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
+                        <input v-model="search" type="text" placeholder="Cari kuis berdasarkan judul atau tema..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
                     </div>
                     <div class="w-full md:w-48 relative">
                         <select v-model="status" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
                             <option value="semua">Semua Status</option>
                             <option value="aktif">Aktif</option>
                             <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48 relative">
+                        <select v-model="tipe" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200">
+                            <option value="semua">Semua Tipe</option>
+                            <option value="harian">Kuis Harian</option>
+                            <option value="event">Kuis Event</option>
                         </select>
                     </div>
                     <div class="w-full md:w-32 relative">
@@ -242,7 +272,7 @@ const formatDateTime = (dateString) => {
                                         <span v-else class="w-5 h-5 block" title="Kuis harian otomatis acak dari bank soal"></span>
 
                                         <Link 
-                                            :href="route('admin.quizzes.edit', quiz.id)" 
+                                            :href="route('admin.quizzes.edit', { quiz: quiz.id, search, status, tipe, per_page, sort_field: sortField, sort_direction: sortDirection })" 
                                             class="text-indigo-400 hover:text-indigo-300 transition-colors" 
                                             title="Edit"
                                         >
