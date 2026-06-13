@@ -2,7 +2,7 @@
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 const props = defineProps({
@@ -17,7 +17,14 @@ const per_page = ref(props.filters?.per_page || '10');
 const sortField = ref(props.filters?.sort_field || 'created_at');
 const sortDirection = ref(props.filters?.sort_direction || 'desc');
 
+// Utility debounce sederhana
+let searchDebounceTimer = null;
+
+// State loading saat request filter sedang berjalan
+const isLoading = ref(false);
+
 const handleSearch = () => {
+    isLoading.value = true;
     router.get(route('admin.quizzes.index'), {
         search: search.value,
         status: status.value,
@@ -28,22 +35,38 @@ const handleSearch = () => {
     }, {
         preserveState: true,
         preserveScroll: true,
-        replace: true
+        replace: true,
+        onFinish: () => { isLoading.value = false; },
     });
 };
+
+// Guard agar update dari props tidak memicu double request
+let isUpdatingFromProps = false;
 
 // Sync refs ketika backend mengirim props.filters baru (misal: setelah delete redirect)
 watch(() => props.filters, (newFilters) => {
     if (!newFilters) return;
+    isUpdatingFromProps = true;
     search.value = newFilters.search || '';
     status.value = newFilters.status || 'aktif';
     tipe.value = newFilters.tipe || 'semua';
     per_page.value = String(newFilters.per_page || '10');
     sortField.value = newFilters.sort_field || 'created_at';
     sortDirection.value = newFilters.sort_direction || 'desc';
+    // Reset flag setelah Vue selesai memproses reactive updates
+    setTimeout(() => { isUpdatingFromProps = false; }, 0);
 }, { deep: true });
 
-watch([search, status, tipe, per_page], () => {
+// Watch search dengan debounce 500ms agar tidak spam request tiap ketik
+watch(search, () => {
+    if (isUpdatingFromProps) return;
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => handleSearch(), 500);
+});
+
+// Watch filter select (langsung trigger tanpa debounce karena aksi eksplisit user)
+watch([status, tipe, per_page], () => {
+    if (isUpdatingFromProps) return;
     handleSearch();
 });
 
@@ -117,7 +140,7 @@ const formatDateTime = (dateString) => {
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="font-bold text-slate-200">Daftar Kuis Tersedia</h3>
                     <Link 
-                        :href="route('admin.quizzes.create', { search, status, tipe, per_page, sort_field: sortField, sort_direction: sortDirection })"
+                        :href="route('admin.quizzes.create', { status, tipe, per_page })"
                         class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg transition-colors duration-200 shadow-lg shadow-blue-900/30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -163,7 +186,15 @@ const formatDateTime = (dateString) => {
                 </div>
 
                 <!-- Data Table -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto relative transition-opacity duration-200" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                    <!-- Loading overlay -->
+                    <div v-if="isLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-slate-900/60 rounded-lg backdrop-blur-sm">
+                        <svg class="animate-spin w-7 h-7 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span class="text-xs text-amber-400 font-medium">Memuat data...</span>
+                    </div>
                     <table class="min-w-full text-slate-300">
                         <thead>
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
