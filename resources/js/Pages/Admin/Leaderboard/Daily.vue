@@ -36,7 +36,7 @@ const sortKey = ref(props.filters?.sort_key || 'score');
 const sortDirection = ref(props.filters?.sort_dir || 'desc');
 
 const updateFilters = () => {
-    router.get(route('admin.leaderboard.index'), {
+    router.get(route('admin.leaderboard.daily'), {
         month: month.value,
         search: searchQuery.value,
         location: filterLocation.value,
@@ -81,7 +81,7 @@ const exportToExcel = () => {
     if (filterLocation.value) params.append('location', filterLocation.value);
     if (sortKey.value) params.append('sort_key', sortKey.value);
     if (sortDirection.value) params.append('sort_dir', sortDirection.value);
-    window.location.href = route('admin.leaderboard.export') + '?' + params.toString();
+    window.location.href = route('admin.leaderboard.daily.export') + '?' + params.toString();
 };
 
 // Line Chart Setup: Daily K3 Progress
@@ -246,7 +246,7 @@ const sortBy = (key) => {
 
     <AdminDashboardLayout>
         <template #header>
-            <span>Leaderboard & Rangkuman Data Quiz</span>
+            <span>Leaderboard Kuis Harian & Rangkuman Data</span>
         </template>
 
         <div class="space-y-6">
@@ -303,7 +303,7 @@ const sortBy = (key) => {
             <!-- Leaderboard Table -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
-                    <h3 class="font-bold text-slate-200">Klasemen Kuis Petugas</h3>
+                    <h3 class="font-bold text-slate-200">Leaderboard Kuis Petugas</h3>
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                         <select
                             v-model="filterLocation"
@@ -341,6 +341,12 @@ const sortBy = (key) => {
                                     <div class="flex items-center justify-center gap-1">
                                         Total Skor
                                         <span v-if="sortKey === 'score'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    </div>
+                                </th>
+                                <th @click="sortBy('attendance')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
+                                    <div class="flex items-center justify-center gap-1">
+                                        Kehadiran
+                                        <span v-if="sortKey === 'attendance'" class="text-[10px] text-amber-500">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
                                     </div>
                                 </th>
                                 <th @click="sortBy('total_quizzes')" class="py-3 px-4 text-center cursor-pointer select-none hover:text-white transition-colors">
@@ -391,6 +397,9 @@ const sortBy = (key) => {
                                 </td>
                                 <td class="py-4 px-4 text-center font-black text-amber-500 text-base">
                                     {{ row.total_score }}
+                                </td>
+                                <td class="py-4 px-4 text-center font-medium">
+                                    {{ row.attendance }} Hari
                                 </td>
                                 <td class="py-4 px-4 text-center font-medium">
                                     {{ row.total_questions }}

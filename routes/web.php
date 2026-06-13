@@ -61,8 +61,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('quiz.history');
     Route::get('/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('quiz.history.export');
 
-    Route::get('/leaderboard', [App\Http\Controllers\Admin\LeaderboardController::class, 'index'])->name('leaderboard.index');
-    Route::get('/leaderboard/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'export'])->name('leaderboard.export');
+    Route::get('/leaderboard/daily', [App\Http\Controllers\Admin\LeaderboardController::class, 'dailyIndex'])->name('leaderboard.daily');
+    Route::get('/leaderboard/daily/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportDaily'])->name('leaderboard.daily.export');
+    Route::get('/leaderboard/event', [App\Http\Controllers\Admin\LeaderboardController::class, 'eventIndex'])->name('leaderboard.event');
+    Route::get('/leaderboard/event/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportEvent'])->name('leaderboard.event.export');
 
 
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);

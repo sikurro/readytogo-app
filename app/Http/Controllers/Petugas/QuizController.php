@@ -173,6 +173,9 @@ class QuizController extends Controller
         // Mengambil semua user yang pernah melakukan percobaan bulan ini
         // dan mengakumulasi skor dan durasi mereka.
         $leaderboard = QuizAttempt::with('user')
+            ->whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
             ->where('month_year', $currentMonth)
             ->selectRaw('user_id, SUM(score) as total_score, SUM(correct_answers) as total_correct, MAX(created_at) as last_played, SUM(time_ms) as total_time')
             ->groupBy('user_id')
