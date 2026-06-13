@@ -17,7 +17,11 @@ const filterLocation = ref(props.filters?.location || '');
 const sortKey = ref(props.filters?.sort_key || 'score');
 const sortDirection = ref(props.filters?.sort_dir || 'desc');
 
+// State loading saat request filter sedang berjalan
+const isLoading = ref(false);
+
 const updateFilters = () => {
+    isLoading.value = true;
     router.get(route('admin.leaderboard.event'), {
         event_id: eventId.value,
         search: searchQuery.value,
@@ -27,7 +31,8 @@ const updateFilters = () => {
     }, {
         preserveState: true,
         preserveScroll: true,
-        replace: true
+        replace: true,
+        onFinish: () => { isLoading.value = false; }
     });
 };
 
@@ -148,7 +153,15 @@ const sortBy = (key) => {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto relative transition-opacity duration-200" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                    <!-- Loading overlay -->
+                    <div v-if="isLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-slate-900/60 rounded-lg backdrop-blur-sm">
+                        <svg class="animate-spin w-7 h-7 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span class="text-xs text-amber-400 font-medium">Memuat data...</span>
+                    </div>
                     <table class="min-w-full text-slate-300">
                         <thead>
                             <tr class="border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
