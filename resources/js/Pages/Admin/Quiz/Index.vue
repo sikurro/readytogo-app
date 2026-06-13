@@ -1,6 +1,7 @@
 <script setup>
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -43,14 +44,31 @@ const sortBy = (field) => {
     handleSearch();
 };
 
-const deleteQuiz = (id) => {
-    if(confirm('Apakah Anda yakin ingin menghapus kuis ini?')) {
-        useForm({}).delete(route('admin.quizzes.destroy', id), {
-            preserveScroll: true,
-            preserveState: true,
-        });
-    }
-}
+// Delete confirmation modal state
+const confirmingQuizDeletion = ref(false);
+const quizToDelete = ref(null);
+const isDeleting = ref(false);
+
+const confirmQuizDeletion = (id) => {
+    quizToDelete.value = id;
+    confirmingQuizDeletion.value = true;
+};
+
+const deleteQuiz = () => {
+    isDeleting.value = true;
+    router.delete(route('admin.quizzes.destroy', quizToDelete.value), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            confirmingQuizDeletion.value = false;
+            quizToDelete.value = null;
+            isDeleting.value = false;
+        },
+        onError: () => {
+            isDeleting.value = false;
+        }
+    });
+};
 const formatDateTime = (dateString) => {
     if (!dateString) return '-';
     const d = new Date(dateString);
@@ -233,7 +251,7 @@ const formatDateTime = (dateString) => {
                                             </svg>
                                         </Link>
                                         <button 
-                                            @click="deleteQuiz(quiz.id)" 
+                                            @click="confirmQuizDeletion(quiz.id)" 
                                             class="text-rose-500 hover:text-rose-400 transition-colors" 
                                             title="Hapus"
                                         >
@@ -263,7 +281,19 @@ const formatDateTime = (dateString) => {
                     </div>
                     <Pagination :links="quizzes.links" />
                 </div>
-            </div>
         </div>
+    </div>
+
+        <!-- Delete Confirmation Modal -->
+        <ConfirmationModal
+            :show="confirmingQuizDeletion"
+            title="Hapus Kuis"
+            message="Apakah Anda yakin ingin menghapus kuis ini? Tindakan ini akan menghapus kuis secara permanen dan memutuskan semua soal yang terhubung."
+            confirm-text="Ya, Hapus"
+            cancel-text="Batal"
+            :loading="isDeleting"
+            @close="confirmingQuizDeletion = false"
+            @confirm="deleteQuiz"
+        />
     </AdminDashboardLayout>
 </template>
