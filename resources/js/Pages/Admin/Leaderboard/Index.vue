@@ -4,6 +4,7 @@ import MonthPicker from '@/Components/MonthPicker.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { Line, Pie } from 'vue-chartjs';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { 
     Chart as ChartJS, 
     Title, 
@@ -90,6 +91,16 @@ const lineOptions = {
         tooltip: {
             mode: 'index',
             intersect: false,
+            callbacks: {
+                title: function(context) {
+                    return 'Tanggal ' + context[0].label;
+                },
+                label: function(context) {
+                    let value = context.parsed.y;
+                    let formattedValue = value.toString().replace('.', ',');
+                    return 'Akurasi Jawaban Benar: ' + formattedValue + '%';
+                }
+            }
         }
     },
     scales: {
@@ -152,6 +163,37 @@ const pieOptions = {
             labels: {
                 color: '#cbd5e1',
             }
+        },
+        datalabels: {
+            color: '#ffffff',
+            font: {
+                weight: 'bold',
+                size: 14
+            },
+            formatter: (value, context) => {
+                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                if (total > 0 && value > 0) {
+                    return ((value / total) * 100).toFixed(2).replace('.', ',') + '%';
+                }
+                return '';
+            }
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    let label = context.label || '';
+                    let value = context.parsed;
+                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    let percentage = 0;
+                    if (total > 0) {
+                        percentage = ((value / total) * 100).toFixed(2).replace('.', ',');
+                    }
+                    if (label) {
+                        label += ' : ';
+                    }
+                    return label + value + ' (' + percentage + '%)';
+                }
+            }
         }
     }
 };
@@ -212,7 +254,7 @@ const hasDailyData = computed(() => {
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                     <h4 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-3">Persentase Tingkat Pemahaman</h4>
                     <div class="h-64 relative">
-                        <Pie v-if="pieChartData.correct > 0 || pieChartData.wrong > 0" :data="pieData" :options="pieOptions" />
+                        <Pie v-if="pieChartData.correct > 0 || pieChartData.wrong > 0" :data="pieData" :options="pieOptions" :plugins="[ChartDataLabels]" />
                         <div v-else class="h-full flex items-center justify-center text-slate-500 text-sm">
                             Tidak ada data jawaban kuis untuk periode grafik ini
                         </div>
