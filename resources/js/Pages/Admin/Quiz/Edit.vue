@@ -15,8 +15,8 @@ const form = useForm({
     is_active: !!props.quiz.is_active,
     is_daily_quiz: !!props.quiz.is_daily_quiz,
     daily_question_limit: props.quiz.daily_question_limit || 10,
-    start_time: props.quiz.start_time ? props.quiz.start_time.slice(0, 16) : '',
-    end_time: props.quiz.end_time ? props.quiz.end_time.slice(0, 16) : '',
+    start_time: props.quiz.start_time ? props.quiz.start_time.replace('T', ' ').slice(0, 19) : '',
+    end_time: props.quiz.end_time ? props.quiz.end_time.replace('T', ' ').slice(0, 19) : '',
 });
 
 const submit = () => {
@@ -31,7 +31,7 @@ const formatDate = (date) => {
     const year = d.getFullYear();
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 </script>
 
@@ -157,6 +157,7 @@ const formatDate = (date) => {
                             text-input
                             :time-config="{ timePickerInline: true }"
                             placeholder="Pilih Waktu Mulai"
+                            input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
                         <InputError :message="form.errors.start_time" class="mt-1" />
                     </div>
@@ -170,6 +171,7 @@ const formatDate = (date) => {
                             text-input
                             :time-config="{ timePickerInline: true }"
                             placeholder="Pilih Waktu Selesai"
+                            input-class-name="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
                         <InputError :message="form.errors.end_time" class="mt-1" />
                     </div>
