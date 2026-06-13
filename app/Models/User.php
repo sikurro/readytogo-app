@@ -25,7 +25,7 @@ class User extends Authenticatable
         'role_id',
         'avatar',
         'position',
-        'location',
+        'location_id',
         'status_fit',
     ];
 
@@ -77,5 +77,10 @@ class User extends Authenticatable
     public function quizAttempts()
     {
         return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }

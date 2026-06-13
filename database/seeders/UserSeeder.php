@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Location;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,6 +18,10 @@ class UserSeeder extends Seeder
         $adminRole = Role::where('name', 'Admin')->first();
         $petugasRole = Role::where('name', 'Petugas')->first();
 
+        $samarindaId = Location::where('name', 'Samarinda')->value('id');
+        $tanjungPriokId = Location::where('name', 'Tanjung Priok')->value('id');
+        $locationIds = [$samarindaId, $tanjungPriokId];
+
         // Seed Admin User
         User::create([
             'name' => 'Administrator K3',
@@ -25,6 +30,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $adminRole->id,
             'position' => 'Super Admin K3',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
 
@@ -36,6 +42,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Petugas Kepanduan Lapangan',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
 
@@ -47,6 +54,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Petugas Patroli Dermaga',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
 
@@ -58,6 +66,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Operator Crane',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
 
@@ -69,6 +78,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Pengawas Lapangan K3',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
 
@@ -80,6 +90,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role_id' => $petugasRole->id,
             'position' => 'Petugas Tambat Kapal',
+            'location_id' => $locationIds[array_rand($locationIds)],
             'status_fit' => true,
         ]);
     }

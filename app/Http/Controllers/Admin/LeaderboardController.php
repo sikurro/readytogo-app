@@ -14,7 +14,7 @@ class LeaderboardController extends Controller
 {
     private function getLeaderboardData(?string $month)
     {
-        $attempts = QuizAttempt::with(['user', 'quiz'])
+        $attempts = QuizAttempt::with(['user.location', 'quiz'])
             ->when($month, function ($query, $month) {
                 return $query->where('month_year', $month);
             })
@@ -51,7 +51,7 @@ class LeaderboardController extends Controller
                 'name' => $user->name,
                 'nip' => $user->nip,
                 'position' => $user->position,
-                'location' => $user->location ?: 'Tidak Diketahui',
+                'location' => $user->location ? $user->location->name : 'Tidak Diketahui',
                 'total_score' => $totalScore,
                 'total_questions' => $totalQuestions,
                 'total_correct' => $totalCorrect,

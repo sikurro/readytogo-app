@@ -85,6 +85,15 @@ const logout = () => {
                     <span v-if="isSidebarOpen">Manajemen User</span>
                 </Link>
 
+                <!-- Master Lokasi -->
+                <Link :href="route('admin.locations.index')" :class="[route().current('admin.locations.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    </svg>
+                    <span v-if="isSidebarOpen">Master Lokasi</span>
+                </Link>
+
                 <!-- Incidents Reporting -->
                 <Link :href="route('admin.dashboard')" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
