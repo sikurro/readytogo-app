@@ -32,7 +32,22 @@ Route::get('/dashboard', function (Request $request) {
     if ($request->user()->isAdmin()) {
         return redirect()->route('admin.dashboard');
     }
-    return Inertia::render('Petugas/Dashboard');
+
+    $now = now();
+    $activeEventQuiz = \App\Models\Quiz::where('is_active', true)
+        ->where('is_daily_quiz', false)
+        ->where(function($query) use ($now) {
+            $query->where(function($q) use ($now) {
+                $q->whereNull('start_time')->orWhere('start_time', '<=', $now);
+            })->where(function($q) use ($now) {
+                $q->whereNull('end_time')->orWhere('end_time', '>=', $now);
+            });
+        })
+        ->first();
+
+    return Inertia::render('Petugas/Dashboard', [
+        'activeEventQuiz' => $activeEventQuiz
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/admin/dashboard', function (Request $request) {

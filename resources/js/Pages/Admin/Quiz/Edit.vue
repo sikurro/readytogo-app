@@ -13,6 +13,8 @@ const form = useForm({
     is_active: !!props.quiz.is_active,
     is_daily_quiz: !!props.quiz.is_daily_quiz,
     daily_question_limit: props.quiz.daily_question_limit || 10,
+    start_time: props.quiz.start_time ? props.quiz.start_time.slice(0, 16) : '',
+    end_time: props.quiz.end_time ? props.quiz.end_time.slice(0, 16) : '',
 });
 
 const submit = () => {
@@ -124,6 +126,32 @@ const submit = () => {
                         class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                     />
                     <InputError :message="form.errors.duration_minutes" class="mt-1" />
+                </div>
+
+                <!-- Event Schedule Inputs (shows only if it is NOT a daily quiz) -->
+                <div v-if="!form.is_daily_quiz" class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-blue-950/20 border border-blue-900/40 rounded-xl">
+                    <div class="col-span-1 sm:col-span-2">
+                        <h4 class="text-base font-bold text-blue-400">Jadwal Event Kuis</h4>
+                        <p class="text-sm text-slate-400 mt-1">Tentukan kapan kuis ini bisa diakses oleh petugas. Kosongkan jika kuis selalu tersedia.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
+                        <input 
+                            v-model="form.start_time" 
+                            type="datetime-local" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                        />
+                        <InputError :message="form.errors.start_time" class="mt-1" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
+                        <input 
+                            v-model="form.end_time" 
+                            type="datetime-local" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                        />
+                        <InputError :message="form.errors.end_time" class="mt-1" />
+                    </div>
                 </div>
 
                 <!-- Active Toggle Option -->
