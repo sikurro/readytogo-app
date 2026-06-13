@@ -136,7 +136,7 @@ const submit = () => {
                         <label class="block text-sm font-semibold text-slate-300">Waktu Mulai (Start Time)</label>
                         <VueDatePicker 
                             v-model="form.start_time" 
-                            format="yyyy-MM-dd HH:mm"
+                            format="dd/MM/yyyy, HH:mm"
                             model-type="yyyy-MM-dd HH:mm:ss"
                             dark
                             text-input
@@ -149,7 +149,7 @@ const submit = () => {
                         <label class="block text-sm font-semibold text-slate-300">Waktu Selesai (End Time)</label>
                         <VueDatePicker 
                             v-model="form.end_time" 
-                            format="yyyy-MM-dd HH:mm"
+                            format="dd/MM/yyyy, HH:mm"
                             model-type="yyyy-MM-dd HH:mm:ss"
                             dark
                             text-input
