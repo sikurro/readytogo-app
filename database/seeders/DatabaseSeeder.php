@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             UserSeeder::class,
             QuizSeeder::class,
+            FatigueQuestionSeeder::class,
         ]);
     }
 }
