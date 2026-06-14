@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::get('/leaderboard/daily', [App\Http\Controllers\Admin\LeaderboardController::class, 'dailyIndex'])->name('leaderboard.daily');
     Route::get('/leaderboard/daily/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportDaily'])->name('leaderboard.daily.export');
+    Route::get('/leaderboard/daily/pdf', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportDailyPdf'])->name('leaderboard.daily.pdf');
     Route::get('/leaderboard/event', [App\Http\Controllers\Admin\LeaderboardController::class, 'eventIndex'])->name('leaderboard.event');
     Route::get('/leaderboard/event/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportEvent'])->name('leaderboard.event.export');
 

@@ -337,6 +337,91 @@ class LeaderboardController extends Controller
         return Excel::download(new LeaderboardExport($filteredLeaderboard, true), $filename);
     }
 
+    public function exportDailyPdf(Request $request)
+    {
+        if (!$request->user()->isAdmin()) abort(403);
+
+        $month = $request->filled('month') ? $request->input('month') : date('Y-m');
+        $fullLeaderboard = $this->getDailyLeaderboardData($month);
+        $filteredLeaderboard = $this->applyFilters($request, $fullLeaderboard);
+
+        // Calculate statistics
+        $totalPetugas = $filteredLeaderboard->count();
+        $avgScore = round($filteredLeaderboard->avg('total_score') ?? 0, 2);
+        $avgAccuracy = round($filteredLeaderboard->avg('percentage_correct') ?? 0, 2);
+        
+        $totalCorrect = $filteredLeaderboard->sum('total_correct');
+        $totalWrong = $filteredLeaderboard->sum('total_wrong');
+        
+        // Group by location for comparison
+        $accuracyPerLocation = $filteredLeaderboard->groupBy('location')->map(function ($items) {
+            return round($items->avg('percentage_correct') ?? 0, 2);
+        })->sortDesc();
+
+        // Calculate daily progress data for daily K3 trend chart
+        $attempts = QuizAttempt::with(['quiz'])
+            ->whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
+            ->when($month, function ($query, $month) {
+                return $query->where('month_year', $month);
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $parsedMonth = \Carbon\Carbon::parse($month . '-01');
+        $daysInMonth = $parsedMonth->daysInMonth;
+
+        $attemptsByDay = $attempts->groupBy(function ($attempt) {
+            return $attempt->created_at->format('d');
+        });
+
+        $dailyProgressData = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayStr = str_pad($day, 2, '0', STR_PAD_LEFT);
+            $dayAttempts = $attemptsByDay->get($dayStr);
+
+            if ($dayAttempts && $dayAttempts->count() > 0) {
+                $avgScoreDay = $dayAttempts->avg('score');
+                $totalCorrectDay = $dayAttempts->sum('correct_answers');
+                $totalQuestionsDay = $dayAttempts->sum(function ($attempt) {
+                    if (!$attempt->quiz) return $attempt->correct_answers;
+                    return $attempt->quiz->daily_question_limit ?: 10;
+                });
+                $avgAccuracyDay = $totalQuestionsDay > 0 
+                    ? round(($totalCorrectDay / $totalQuestionsDay) * 100, 2)
+                    : 0;
+            } else {
+                $avgScoreDay = null;
+                $avgAccuracyDay = null;
+            }
+
+            $dailyProgressData[] = [
+                'day' => $dayStr,
+                'avg_score' => $avgScoreDay !== null ? round($avgScoreDay, 2) : null,
+                'avg_accuracy' => $avgAccuracyDay,
+                'total_attempts' => $dayAttempts ? $dayAttempts->count() : 0,
+            ];
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.leaderboard_daily', compact(
+            'filteredLeaderboard',
+            'month',
+            'totalPetugas',
+            'avgScore',
+            'avgAccuracy',
+            'totalCorrect',
+            'totalWrong',
+            'accuracyPerLocation',
+            'dailyProgressData'
+        ));
+
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'laporan_k3_petugas_' . $month . '_' . now()->format('Ymd_His') . '.pdf';
+        return $pdf->stream($filename);
+    }
+
     public function exportEvent(Request $request)
     {
         if (!$request->user()->isAdmin()) abort(403);
