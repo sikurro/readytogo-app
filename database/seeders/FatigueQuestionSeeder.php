@@ -13,15 +13,27 @@ class FatigueQuestionSeeder extends Seeder
     public function run(): void
     {
         $questions = [
-            'Apakah Anda tidur minimal 6 jam semalam?',
-            'Apakah Anda sedang mengonsumsi obat yang menyebabkan kantuk?',
-            'Apakah kondisi badan Anda merasa sehat/fit hari ini?'
+            [
+                'question_text' => 'Apakah Anda tidur minimal 6 jam semalam?',
+                'safe_answer' => true
+            ],
+            [
+                'question_text' => 'Apakah Anda sedang mengonsumsi obat yang menyebabkan kantuk?',
+                'safe_answer' => false
+            ],
+            [
+                'question_text' => 'Apakah kondisi badan Anda merasa sehat/fit hari ini?',
+                'safe_answer' => true
+            ]
         ];
 
-        foreach ($questions as $questionText) {
+        foreach ($questions as $qData) {
             FatigueQuestion::updateOrCreate(
-                ['question_text' => $questionText],
-                ['is_active' => true]
+                ['question_text' => $qData['question_text']],
+                [
+                    'is_active' => true,
+                    'safe_answer' => $qData['safe_answer']
+                ]
             );
         }
     }

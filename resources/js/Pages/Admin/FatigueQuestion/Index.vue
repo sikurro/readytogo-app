@@ -38,6 +38,7 @@ const selectedQuestion = ref(null);
 const createForm = useForm({
     question_text: '',
     is_active: true,
+    safe_answer: true,
 });
 
 const submitCreate = () => {
@@ -52,12 +53,14 @@ const submitCreate = () => {
 const editForm = useForm({
     question_text: '',
     is_active: true,
+    safe_answer: true,
 });
 
 const openEditModal = (question) => {
     selectedQuestion.value = question;
     editForm.question_text = question.question_text;
     editForm.is_active = !!question.is_active;
+    editForm.safe_answer = !!question.safe_answer;
     isEditModalOpen.value = true;
 };
 
@@ -136,7 +139,8 @@ const submitDelete = () => {
                             <tr class="bg-slate-950 border-b border-slate-800 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                                 <th class="py-3 px-4 text-center w-12">No</th>
                                 <th class="py-3 px-4">Isi Pertanyaan</th>
-                                <th class="py-3 px-4 text-center w-32">Status</th>
+                                <th class="py-3 px-4 text-center w-36">Jawaban Aman (Safe)</th>
+                                <th class="py-3 px-4 text-center w-28">Status</th>
                                 <th class="py-3 px-4 text-right w-24">Aksi</th>
                             </tr>
                         </thead>
@@ -147,6 +151,11 @@ const submitDelete = () => {
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="font-semibold text-slate-100">{{ q.question_text }}</div>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <span :class="[q.safe_answer ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20', 'px-3 py-1 rounded-full text-xs font-bold']">
+                                        {{ q.safe_answer ? 'Ya (True)' : 'Tidak (False)' }}
+                                    </span>
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <span :class="[q.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25' : 'bg-slate-800 text-slate-500 border border-slate-700/50', 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold']">
@@ -169,7 +178,7 @@ const submitDelete = () => {
                                 </td>
                             </tr>
                             <tr v-if="questions.data.length === 0">
-                                <td colspan="4" class="py-8 text-center text-slate-500">
+                                <td colspan="5" class="py-8 text-center text-slate-500">
                                     Tidak ada data pertanyaan yang ditemukan.
                                 </td>
                             </tr>
@@ -201,7 +210,15 @@ const submitDelete = () => {
                                     <textarea id="create_text" rows="3" class="mt-1 block w-full bg-slate-950 border-slate-850 rounded-lg text-slate-250 focus:border-amber-500 focus:ring-amber-500" v-model="createForm.question_text" required placeholder="Contoh: Apakah Anda tidur minimal 6 jam semalam?"></textarea>
                                     <InputError :message="createForm.errors.question_text" class="mt-1" />
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div>
+                                    <InputLabel for="create_safe_answer" value="Jawaban Aman (Safe Answer)" class="text-slate-350 mb-1" />
+                                    <select id="create_safe_answer" class="w-full bg-slate-950 border-slate-850 rounded-lg text-slate-250 focus:border-amber-500 focus:ring-amber-500 text-sm py-2 px-3" v-model="createForm.safe_answer">
+                                        <option :value="true">Ya (True)</option>
+                                        <option :value="false">Tidak (False)</option>
+                                    </select>
+                                    <p class="text-[10px] text-slate-500 mt-1">Jawaban yang harus dipilih petugas agar dinyatakan "Aman/Fit".</p>
+                                </div>
+                                <div class="flex items-center gap-2 pt-2">
                                     <input type="checkbox" id="create_active" class="rounded bg-slate-950 border-slate-850 text-amber-500 focus:ring-amber-500" v-model="createForm.is_active" />
                                     <label for="create_active" class="text-sm text-slate-300 font-medium">Aktif (Ditampilkan ke petugas)</label>
                                 </div>
@@ -235,14 +252,22 @@ const submitDelete = () => {
                                     <textarea id="edit_text" rows="3" class="mt-1 block w-full bg-slate-950 border-slate-850 rounded-lg text-slate-250 focus:border-amber-500 focus:ring-amber-500" v-model="editForm.question_text" required></textarea>
                                     <InputError :message="editForm.errors.question_text" class="mt-1" />
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div>
+                                    <InputLabel for="edit_safe_answer" value="Jawaban Aman (Safe Answer)" class="text-slate-350 mb-1" />
+                                    <select id="edit_safe_answer" class="w-full bg-slate-950 border-slate-850 rounded-lg text-slate-250 focus:border-amber-500 focus:ring-amber-500 text-sm py-2 px-3" v-model="editForm.safe_answer">
+                                        <option :value="true">Ya (True)</option>
+                                        <option :value="false">Tidak (False)</option>
+                                    </select>
+                                    <p class="text-[10px] text-slate-500 mt-1">Jawaban yang harus dipilih petugas agar dinyatakan "Aman/Fit".</p>
+                                </div>
+                                <div class="flex items-center gap-2 pt-2">
                                     <input type="checkbox" id="edit_active" class="rounded bg-slate-950 border-slate-850 text-amber-500 focus:ring-amber-500" v-model="editForm.is_active" />
                                     <label for="edit_active" class="text-sm text-slate-300 font-medium">Aktif (Ditampilkan ke petugas)</label>
                                 </div>
                             </div>
                         </div>
                         <div class="bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-800">
-                            <button type="submit" :disabled="editForm.processing" class="inline-flex justify-center items-center gap-2 rounded-lg border border-transparent px-5 py-2.5 bg-amber-550 text-sm font-semibold text-slate-950 hover:bg-amber-450 focus:outline-none transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/10">
+                            <button type="submit" :disabled="editForm.processing" class="inline-flex justify-center items-center gap-2 rounded-lg border border-transparent px-5 py-2.5 bg-amber-550 text-sm font-semibold text-slate-950 hover:bg-amber-455 focus:outline-none transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/10">
                                 {{ editForm.processing ? 'Memperbarui...' : 'Perbarui Pertanyaan' }}
                             </button>
                             <button type="button" @click="isEditModalOpen = false" :disabled="editForm.processing" class="inline-flex justify-center rounded-lg border border-slate-700 px-4 py-2 bg-slate-800 text-sm font-semibold text-slate-300 hover:bg-slate-700 focus:outline-none transition-colors disabled:opacity-50">

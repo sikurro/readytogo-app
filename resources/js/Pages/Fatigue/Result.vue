@@ -67,8 +67,21 @@ defineProps({
                         </div>
                     </div>
 
+                    <!-- Questionnaire Answers List -->
+                    <div v-if="result.answers && result.answers.length > 0" class="mt-6 bg-slate-950/60 rounded-2xl p-4 text-left border border-white/5">
+                        <p class="text-xs font-bold text-slate-350 mb-3 uppercase tracking-wider">Detail Jawaban Kuesioner:</p>
+                        <div class="space-y-2.5">
+                            <div v-for="ans in result.answers" :key="ans.id" class="flex items-start justify-between gap-3 text-xs">
+                                <span class="text-slate-400 leading-tight">{{ ans.question?.question_text }}</span>
+                                <span :class="ans.answer === !!ans.question?.safe_answer ? 'text-emerald-400 font-bold' : 'text-rose-455 font-bold text-rose-400'">
+                                    {{ ans.answer ? 'Ya' : 'Tidak' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Warnings (if unfit) -->
-                    <div v-if="!result.is_fit" class="bg-red-950/50 rounded-xl p-4 text-left border border-red-500/20 backdrop-blur-sm">
+                    <div v-if="!result.is_fit" class="bg-red-950/50 rounded-xl p-4 text-left border border-red-500/20 backdrop-blur-sm mt-4">
                         <p class="text-xs font-bold text-red-400 mb-2 flex items-center gap-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
