@@ -101,6 +101,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('questions/import', [App\Http\Controllers\Admin\QuestionController::class, 'import'])->name('questions.import');
     Route::resource('questions', App\Http\Controllers\Admin\QuestionController::class);
 
+    Route::resource('fatigue-questions', App\Http\Controllers\Admin\FatigueQuestionController::class);
+    Route::get('fatigue-checks', [App\Http\Controllers\Admin\FatigueCheckController::class, 'index'])->name('fatigue-checks.index');
+
     Route::get('users/template', [App\Http\Controllers\Admin\UserController::class, 'downloadTemplate'])->name('users.template');
     Route::get('users/export', [App\Http\Controllers\Admin\UserController::class, 'export'])->name('users.export');
     Route::post('users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
