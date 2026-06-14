@@ -20,6 +20,7 @@ Dokumen ini berisi *timeline* dan tahapan pengembangan (roadmap) tingkat tinggi 
 - **Fatigue Check (Fit to Work):**
   - Pembuatan UI tes reaksi visual (merah/hijau).
   - Logic sistem validasi *delay* respons (< 400ms = Fit).
+  - *(Agenda Mendatang: Peningkatan Fatigue Check dengan Game "Cari Bentuk Berbeda" ala AlertMeter).*
 - **Modul Pelaporan Insiden:**
   - Form UI dengan GPS / input manual.
   - Kompresi foto pada sisi client (< 1MB) untuk meminimalkan beban *upload*.
