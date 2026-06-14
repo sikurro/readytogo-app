@@ -26,47 +26,10 @@ Route::get('/', function () {
     ]);
 });
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\DashboardController;
 
-Route::get('/dashboard', function (Request $request) {
-    if ($request->user()->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    $now = now();
-    $activeEventQuiz = \App\Models\Quiz::where('is_active', true)
-        ->where('is_daily_quiz', false)
-        ->where(function($query) use ($now) {
-            $query->where(function($q) use ($now) {
-                $q->whereNull('start_time')->orWhere('start_time', '<=', $now);
-            })->where(function($q) use ($now) {
-                $q->whereNull('end_time')->orWhere('end_time', '>=', $now);
-            });
-        })
-        ->first();
-
-    $todayStart = now('Asia/Makassar')->startOfDay()->setTimezone('UTC');
-    $todayEnd = now('Asia/Makassar')->endOfDay()->setTimezone('UTC');
-
-    $latestFatigueCheckToday = $request->user()->fatigueChecks()
-        ->whereBetween('created_at', [$todayStart, $todayEnd])
-        ->latest()
-        ->first();
-
-    $statusBugarHariIni = $latestFatigueCheckToday ? $latestFatigueCheckToday->is_fit : null;
-
-    return Inertia::render('Petugas/Dashboard', [
-        'activeEventQuiz' => $activeEventQuiz,
-        'statusBugarHariIni' => $statusBugarHariIni
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::get('/admin/dashboard', function (Request $request) {
-    if (!$request->user()->isAdmin()) {
-        return redirect()->route('dashboard');
-    }
-    return Inertia::render('Admin/Dashboard');
-})->middleware(['auth', 'verified'])->name('admin.dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->middleware(['auth', 'verified'])->name('admin.dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
