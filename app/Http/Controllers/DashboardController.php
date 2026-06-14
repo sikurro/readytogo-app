@@ -30,9 +30,10 @@ class DashboardController extends Controller
             ->first();
 
         $userTimezone = $request->cookie('user_timezone', 'Asia/Jakarta');
+        $appTimezone = config('app.timezone', 'Asia/Jakarta');
 
-        $todayStart = now($userTimezone)->startOfDay()->setTimezone('UTC');
-        $todayEnd = now($userTimezone)->endOfDay()->setTimezone('UTC');
+        $todayStart = now($userTimezone)->startOfDay()->setTimezone($appTimezone);
+        $todayEnd = now($userTimezone)->endOfDay()->setTimezone($appTimezone);
 
         $latestFatigueCheckToday = $request->user()->fatigueChecks()
             ->whereBetween('created_at', [$todayStart, $todayEnd])
