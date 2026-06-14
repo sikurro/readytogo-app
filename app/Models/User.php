@@ -83,4 +83,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Location::class);
     }
+
+    public function fatigueChecks()
+    {
+        return $this->hasMany(FatigueCheck::class);
+    }
 }
