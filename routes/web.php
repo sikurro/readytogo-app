@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/fatigue/reaction-test', [\App\Http\Controllers\FatigueCheckController::class, 'test'])->name('fatigue.test');
     Route::post('/fatigue/store', [\App\Http\Controllers\FatigueCheckController::class, 'store'])->name('fatigue.store');
     Route::get('/fatigue/result', [\App\Http\Controllers\FatigueCheckController::class, 'result'])->name('fatigue.result');
+    Route::get('/fatigue/history', [\App\Http\Controllers\FatigueCheckController::class, 'history'])->name('fatigue.history');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {

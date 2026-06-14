@@ -3,29 +3,25 @@ import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
 
-const questions = ref([
-    {
-        id: 'q1',
-        text: 'Apakah Anda tidur minimal 6 jam semalam?',
-        answer: null
-    },
-    {
-        id: 'q2',
-        text: 'Apakah Anda sedang mengonsumsi obat yang menyebabkan kantuk?',
-        answer: null
-    },
-    {
-        id: 'q3',
-        text: 'Apakah kondisi badan Anda merasa sehat/fit hari ini?',
-        answer: null
+const props = defineProps({
+    questions: {
+        type: Array,
+        required: true
     }
-]);
+});
+
+const localQuestions = ref(props.questions.map(q => ({
+    id: q.id,
+    text: q.question_text,
+    safe_answer: !!q.safe_answer,
+    answer: null
+})));
 
 const errorMessage = ref('');
 
 const submitQuestionnaire = () => {
     // Validate that all questions are answered
-    for (const q of questions.value) {
+    for (const q of localQuestions.value) {
         if (q.answer === null) {
             errorMessage.value = 'Harap jawab semua pertanyaan.';
             return;
@@ -34,19 +30,18 @@ const submitQuestionnaire = () => {
     
     errorMessage.value = '';
 
-    // Calculate status: 
-    // Q1 (Tidur cukup) must be true
-    // Q2 (Obat ngantuk) must be false
-    // Q3 (Merasa sehat) must be true
-    const isFitQuestionnaire = (
-        questions.value[0].answer === true &&
-        questions.value[1].answer === false &&
-        questions.value[2].answer === true
-    );
+    // Calculate status: all answers must match their safe_answer
+    const isFitQuestionnaire = localQuestions.value.every(q => q.answer === q.safe_answer);
+
+    // Map answers to payload: { question_id: answer }
+    const answersPayload = {};
+    localQuestions.value.forEach(q => {
+        answersPayload[q.id] = q.answer;
+    });
 
     router.post(route('fatigue.questionnaire.process'), {
         status: isFitQuestionnaire,
-        answers: questions.value.map(q => q.answer)
+        answers: answersPayload
     });
 };
 </script>
@@ -81,7 +76,7 @@ const submitQuestionnaire = () => {
 
             <!-- Questionnaire Form -->
             <div class="space-y-4">
-                <div v-for="(question, index) in questions" :key="question.id" 
+                <div v-for="(question, index) in localQuestions" :key="question.id" 
                     class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-5 shadow-lg">
                     <p class="text-sm font-medium text-slate-200 mb-4 leading-relaxed"><span class="text-amber-500 font-bold mr-1">{{ index + 1 }}.</span> {{ question.text }}</p>
                     <div class="flex space-x-4">
@@ -99,10 +94,13 @@ const submitQuestionnaire = () => {
                         </label>
                     </div>
                 </div>
+                <div v-if="localQuestions.length === 0" class="text-center py-8 text-slate-500 text-sm">
+                    Tidak ada pertanyaan kuesioner aktif saat ini.
+                </div>
             </div>
 
             <!-- Submit Action -->
-            <div class="pt-4 pb-8">
+            <div class="pt-4 pb-8" v-if="localQuestions.length > 0">
                 <button @click="submitQuestionnaire" 
                     class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold py-4 px-5 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
                     <span>Lanjutkan ke Tes Reaksi</span>

@@ -12,9 +12,11 @@ class FatigueQuestion extends Model
     protected $fillable = [
         'question_text',
         'is_active',
+        'safe_answer',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'safe_answer' => 'boolean',
     ];
 }

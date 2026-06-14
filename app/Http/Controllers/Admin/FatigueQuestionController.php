@@ -29,7 +29,8 @@ class FatigueQuestionController extends Controller
     {
         $validated = $request->validate([
             'question_text' => 'required|string|min:5|max:1000',
-            'is_active' => 'required|boolean'
+            'is_active' => 'required|boolean',
+            'safe_answer' => 'required|boolean'
         ]);
 
         FatigueQuestion::create($validated);
@@ -41,7 +42,8 @@ class FatigueQuestionController extends Controller
     {
         $validated = $request->validate([
             'question_text' => 'required|string|min:5|max:1000',
-            'is_active' => 'required|boolean'
+            'is_active' => 'required|boolean',
+            'safe_answer' => 'required|boolean'
         ]);
 
         $fatigueQuestion->update($validated);

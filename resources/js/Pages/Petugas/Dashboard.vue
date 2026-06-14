@@ -77,9 +77,17 @@ const today = new Date().toLocaleDateString('id-ID', {
                 <!-- Status Fit Widget -->
                 <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Status Bugar (K3)</span>
-                    <div class="mt-2 flex items-center gap-2">
+                    <div v-if="auth.user.status_fit === null" class="mt-2 flex items-center gap-2">
                         <span class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
                         <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Belum Tes</span>
+                    </div>
+                    <div v-else-if="auth.user.status_fit === true" class="mt-2 flex items-center gap-2">
+                        <span class="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                        <span class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">FIT</span>
+                    </div>
+                    <div v-else class="mt-2 flex items-center gap-2">
+                        <span class="h-3 w-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
+                        <span class="text-xs font-extrabold text-rose-455 text-rose-400 uppercase tracking-wider">UNFIT</span>
                     </div>
                 </div>
             </div>
