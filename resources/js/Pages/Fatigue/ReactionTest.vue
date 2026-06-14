@@ -1,7 +1,6 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
-import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
+import { ref, onUnmounted } from 'vue';
+import { Head, router, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     questionnaireStatus: {
@@ -24,7 +23,6 @@ const startTest = () => {
     gameState.value = 'ready';
     message.value = 'Tunggu warna berubah hijau...';
     
-    // Random delay between 2 to 6 seconds
     const delay = Math.floor(Math.random() * 4000) + 2000;
     
     timeoutId = setTimeout(() => {
@@ -43,7 +41,6 @@ const handleTap = (e) => {
     }
 
     if (gameState.value === 'ready') {
-        // Tapped too early
         clearTimeout(timeoutId);
         message.value = 'Terlalu Cepat! Ketuk untuk mengulangi.';
         gameState.value = 'waiting';
@@ -51,12 +48,11 @@ const handleTap = (e) => {
     }
 
     if (gameState.value === 'active') {
-        // Valid tap
         const reactionTime = Date.now() - startTime;
         results.value.push(reactionTime);
         
         if (results.value.length < maxAttempts) {
-            message.value = `Waktu Anda: ${reactionTime} ms. Ketuk untuk lanjut (${results.value.length}/${maxAttempts})`;
+            message.value = `Waktu: ${reactionTime} ms — Ketuk untuk lanjut`;
             gameState.value = 'waiting';
         } else {
             finishTest();
@@ -71,10 +67,8 @@ const finishTest = () => {
     const average = Math.round(sum / results.value.length);
     message.value = `Selesai! Rata-rata: ${average} ms`;
     
-    // Determine if fit (threshold < 500ms)
     const isFit = props.questionnaireStatus && average < 500;
 
-    // Send results to server
     setTimeout(() => {
         router.post(route('fatigue.store'), {
             questionnaire_status: props.questionnaireStatus,
@@ -92,72 +86,91 @@ onUnmounted(() => {
 <template>
     <Head title="Fatigue Check - Tes Reaksi" />
 
-    <MobileAppLayout>
-        <div class="space-y-6 flex flex-col h-full min-h-[70vh]">
-            <!-- Header section -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-800 rounded-2xl p-5 shadow-xl shrink-0">
-                <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700 shadow-inner">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-amber-500">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-900">
+        <!-- Minimal Top Bar -->
+        <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <Link :href="route('fatigue.questionnaire')" class="p-1.5 text-slate-400 hover:text-amber-500 transition-colors rounded-lg hover:bg-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </Link>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-slate-100">Tes Reaksi Mata</h1>
+                    <p class="text-[10px] text-slate-400 font-medium">Percobaan {{ results.length }}/{{ maxAttempts }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div v-for="i in maxAttempts" :key="i" 
+                    class="h-2 w-6 rounded-full transition-all duration-300"
+                    :class="i <= results.length ? 'bg-amber-500' : 'bg-slate-700'">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Reaction Area (Full remaining height) -->
+        <main class="flex-1 flex flex-col p-4 gap-4">
+            <!-- Instruction Card (shown only initially) -->
+            <div v-if="gameState === 'waiting' && results.length === 0" 
+                class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 shrink-0">
+                <div class="flex items-start gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-amber-500">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-100 tracking-tight">Tes Reaksi Mata</h2>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5 leading-relaxed">Uji kecepatan reaksi Anda sebelum bertugas.</p>
+                        <p class="text-xs font-bold text-slate-200 mb-1">Instruksi:</p>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">Area di bawah akan berubah menjadi <span class="text-red-400 font-bold">MERAH</span>. Saat berubah menjadi <span class="text-emerald-400 font-bold">HIJAU</span>, ketuk secepat mungkin!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Reaction Area -->
+            <!-- Tap Zone -->
             <div 
-                class="flex-1 flex flex-col items-center justify-center rounded-3xl p-6 text-center select-none touch-manipulation transition-all duration-100 cursor-pointer border-4"
+                class="flex-1 flex flex-col items-center justify-center rounded-3xl p-6 text-center select-none touch-manipulation cursor-pointer border-2 transition-all duration-150"
                 @mousedown="handleTap" @touchstart="handleTap"
                 :class="{
-                    'bg-slate-800 border-slate-700 shadow-[0_0_15px_rgba(30,41,59,0.5)]': gameState === 'waiting' || gameState === 'finished',
-                    'bg-red-500 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.6)]': gameState === 'ready',
-                    'bg-emerald-500 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.8)] scale-[1.02]': gameState === 'active'
+                    'bg-slate-800/80 border-slate-700 shadow-[0_0_20px_rgba(30,41,59,0.5)]': gameState === 'waiting' || gameState === 'finished',
+                    'bg-red-500 border-red-400 shadow-[0_0_40px_rgba(239,68,68,0.6)]': gameState === 'ready',
+                    'bg-emerald-500 border-emerald-400 shadow-[0_0_50px_rgba(16,185,129,0.8)] scale-[1.01]': gameState === 'active'
                 }"
             >
-                <div class="h-16 w-16 rounded-full flex items-center justify-center mb-6"
+                <!-- Icon -->
+                <div class="h-20 w-20 rounded-full flex items-center justify-center mb-5"
                     :class="{
-                        'bg-slate-700 text-slate-400': gameState === 'waiting' || gameState === 'finished',
-                        'bg-red-600 text-red-200 animate-pulse': gameState === 'ready',
-                        'bg-emerald-600 text-emerald-100 animate-bounce': gameState === 'active'
+                        'bg-slate-700/60 text-slate-400': gameState === 'waiting' || gameState === 'finished',
+                        'bg-red-600/80 text-white animate-pulse': gameState === 'ready',
+                        'bg-emerald-600/80 text-white animate-bounce': gameState === 'active'
                     }">
-                    <svg v-if="gameState === 'waiting' || gameState === 'finished'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                    <svg v-if="gameState === 'waiting' || gameState === 'finished'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.54l-1.59-1.59" />
                     </svg>
-                    <svg v-else-if="gameState === 'ready'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8">
+                    <svg v-else-if="gameState === 'ready'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8">
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.54l-1.59-1.59" />
                     </svg>
                 </div>
                 
-                <h1 class="text-xl md:text-3xl font-black text-white mb-2 tracking-wide drop-shadow-md">
+                <h1 class="text-2xl md:text-3xl font-black text-white mb-3 tracking-wide drop-shadow-lg leading-tight">
                     {{ message }}
                 </h1>
-                
-                <div v-if="gameState === 'waiting' && results.length === 0" class="text-slate-400 max-w-xs mx-auto text-sm mt-4 font-medium">
-                    <p class="mb-1">Layar akan berubah menjadi <span class="text-red-400 font-bold">MERAH</span>.</p>
-                    <p>Saat layar menjadi <span class="text-emerald-400 font-bold">HIJAU</span>, ketuk layar secepat mungkin!</p>
-                </div>
+
+                <p v-if="gameState === 'waiting' && results.length > 0" class="text-slate-400 text-xs font-medium">
+                    Ketuk untuk percobaan berikutnya
+                </p>
             </div>
 
-            <!-- Attempts Indicator -->
-            <div class="shrink-0 flex flex-col items-center justify-center py-2">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Percobaan ({{ results.length }}/{{ maxAttempts }})</p>
-                <div class="flex justify-center space-x-3">
-                    <div v-for="i in maxAttempts" :key="i" 
-                        class="w-16 py-1.5 rounded-full text-center text-xs font-bold border"
-                        :class="i <= results.length ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-800 border-slate-700/50 text-slate-600'">
-                        <span v-if="i <= results.length">{{ results[i-1] }} ms</span>
-                        <span v-else>-</span>
-                    </div>
+            <!-- Results Pills (shown after at least 1 attempt) -->
+            <div v-if="results.length > 0" class="shrink-0 flex justify-center gap-3 pb-2">
+                <div v-for="(res, idx) in results" :key="idx" 
+                    class="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-center">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase">#{{ idx + 1 }}</p>
+                    <p class="text-sm font-black text-amber-500">{{ res }}<span class="text-[10px] text-slate-500 ml-0.5">ms</span></p>
                 </div>
             </div>
-        </div>
-    </MobileAppLayout>
+        </main>
+    </div>
 </template>
