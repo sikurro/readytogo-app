@@ -45,8 +45,19 @@ Route::get('/dashboard', function (Request $request) {
         })
         ->first();
 
+    $todayStart = now('Asia/Makassar')->startOfDay()->setTimezone('UTC');
+    $todayEnd = now('Asia/Makassar')->endOfDay()->setTimezone('UTC');
+
+    $latestFatigueCheckToday = $request->user()->fatigueChecks()
+        ->whereBetween('created_at', [$todayStart, $todayEnd])
+        ->latest()
+        ->first();
+
+    $statusBugarHariIni = $latestFatigueCheckToday ? $latestFatigueCheckToday->is_fit : null;
+
     return Inertia::render('Petugas/Dashboard', [
-        'activeEventQuiz' => $activeEventQuiz
+        'activeEventQuiz' => $activeEventQuiz,
+        'statusBugarHariIni' => $statusBugarHariIni
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
