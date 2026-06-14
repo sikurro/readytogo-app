@@ -45,8 +45,16 @@ Route::get('/dashboard', function (Request $request) {
         })
         ->first();
 
+    $latestFatigueCheckToday = $request->user()->fatigueChecks()
+        ->whereDate('created_at', now()->toDateString())
+        ->latest()
+        ->first();
+
+    $statusBugarHariIni = $latestFatigueCheckToday ? $latestFatigueCheckToday->is_fit : null;
+
     return Inertia::render('Petugas/Dashboard', [
-        'activeEventQuiz' => $activeEventQuiz
+        'activeEventQuiz' => $activeEventQuiz,
+        'statusBugarHariIni' => $statusBugarHariIni
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
