@@ -78,9 +78,14 @@ const today = new Date().toLocaleDateString('id-ID', {
                 <!-- Status Fit Widget -->
                 <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Status Fatigue Check</span>
-                    <div v-if="statusBugarHariIni === null" class="mt-2 flex items-center gap-2">
-                        <span class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Belum Tes</span>
+                    <div v-if="statusBugarHariIni === null" class="mt-2 flex flex-col gap-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Belum Tes</span>
+                        </div>
+                        <Link :href="route('fatigue.questionnaire')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider py-1.5 px-2 rounded-lg text-center shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+                            Cek Sekarang
+                        </Link>
                     </div>
                     <div v-else-if="statusBugarHariIni === true" class="mt-2 flex items-center gap-2">
                         <span class="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
