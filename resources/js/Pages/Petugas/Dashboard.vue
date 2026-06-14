@@ -78,15 +78,9 @@ const today = new Date().toLocaleDateString('id-ID', {
                 <!-- Status Fit Widget -->
                 <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Status Fatigue Check</span>
-                    <div v-if="statusBugarHariIni === null" class="mt-2 flex flex-col gap-1">
-                        <div class="flex items-center gap-2">
-                            <span class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
-                            <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Belum Tes</span>
-                        </div>
-                        <Link :href="route('fatigue.questionnaire')" class="text-[10px] font-bold text-amber-500/80 hover:text-amber-400 flex items-center gap-1 transition-colors w-fit">
-                            Cek Sekarang 
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                        </Link>
+                    <div v-if="statusBugarHariIni === null" class="mt-2 flex items-center gap-2">
+                        <span class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Belum Tes</span>
                     </div>
                     <div v-else-if="statusBugarHariIni === true" class="mt-2 flex items-center gap-2">
                         <span class="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
@@ -100,13 +94,17 @@ const today = new Date().toLocaleDateString('id-ID', {
             </div>
 
             <!-- Warning Alert: Mandatory Fatigue Check -->
-            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 items-start">
+            <div v-if="statusBugarHariIni === null" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                 </svg>
-                <div>
+                <div class="flex-1">
                     <h4 class="text-xs font-bold text-amber-500">Fatigue Check Wajib!</h4>
                     <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Anda diwajibkan untuk melakukan pemeriksaan kesiapan kerja (reaksi mata) sebelum turun ke lapangan hari ini.</p>
+                    <Link :href="route('fatigue.questionnaire')" class="inline-flex items-center gap-1.5 mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-[10px] font-black uppercase tracking-wider py-2 px-3.5 rounded-lg shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]">
+                        Cek Sekarang
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                    </Link>
                 </div>
             </div>
 

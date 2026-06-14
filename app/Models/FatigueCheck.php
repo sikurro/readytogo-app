@@ -16,6 +16,11 @@ class FatigueCheck extends Model
         'is_fit',
     ];
 
+    protected $casts = [
+        'is_fit' => 'boolean',
+        'questionnaire_status' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

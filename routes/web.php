@@ -45,8 +45,11 @@ Route::get('/dashboard', function (Request $request) {
         })
         ->first();
 
+    $todayStart = now('Asia/Makassar')->startOfDay()->setTimezone('UTC');
+    $todayEnd = now('Asia/Makassar')->endOfDay()->setTimezone('UTC');
+
     $latestFatigueCheckToday = $request->user()->fatigueChecks()
-        ->whereDate('created_at', now()->toDateString())
+        ->whereBetween('created_at', [$todayStart, $todayEnd])
         ->latest()
         ->first();
 
