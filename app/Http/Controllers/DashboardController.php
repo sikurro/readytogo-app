@@ -29,6 +29,10 @@ class DashboardController extends Controller
             })
             ->first();
 
+        $hasAttemptedEventQuiz = $activeEventQuiz
+            ? $activeEventQuiz->attempts()->where('user_id', $request->user()->id)->exists()
+            : false;
+
         $userTimezone = $request->cookie('user_timezone', 'Asia/Jakarta');
         $appTimezone = config('app.timezone', 'Asia/Jakarta');
 
@@ -44,7 +48,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Petugas/Dashboard', [
             'activeEventQuiz' => $activeEventQuiz,
-            'statusBugarHariIni' => $statusBugarHariIni
+            'statusBugarHariIni' => $statusBugarHariIni,
+            'hasAttemptedEventQuiz' => $hasAttemptedEventQuiz,
         ]);
     }
 
