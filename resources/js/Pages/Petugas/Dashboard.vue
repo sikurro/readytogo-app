@@ -52,9 +52,9 @@ const today = new Date().toLocaleDateString('id-ID', {
                         <span class="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                         <span class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">FIT</span>
                     </div>
-                    <div v-else class="mt-2 flex items-center gap-2">
+                    <div v-else-if="statusBugarHariIni === false" class="mt-2 flex items-center gap-2">
                         <span class="h-3 w-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
-                        <span class="text-xs font-extrabold text-rose-455 text-rose-400 uppercase tracking-wider">UNFIT</span>
+                        <span class="text-xs font-extrabold text-rose-400 uppercase tracking-wider">UNFIT</span>
                     </div>
                 </div>
             </div>
@@ -120,18 +120,18 @@ const today = new Date().toLocaleDateString('id-ID', {
             <div class="space-y-4">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Menu Operasional K3</h3>
                 
-                <!-- Action 1: Fatigue Test -->
-                <Link :href="route('fatigue.questionnaire')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between shadow-lg shadow-amber-500/10 transition-all active:scale-95 group block">
+                <!-- Action 1: Modul Fatigue -->
+                <Link :href="route('fatigue.history')" class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group block">
                     <div class="flex items-center gap-3 text-left">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-sky-500">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0110 21a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0114 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                         </svg>
                         <div>
-                            <span class="block text-sm">Mulai Fatigue Check</span>
-                            <span class="block text-[10px] opacity-75 font-semibold">Uji reaksi mata sebelum bertugas</span>
+                            <span class="block text-sm text-slate-100">Modul Fatigue</span>
+                            <span class="block text-[10px] text-slate-400 font-medium">Lihat hasil hari ini, riwayat, dan info fatigue</span>
                         </div>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
                 </Link>
