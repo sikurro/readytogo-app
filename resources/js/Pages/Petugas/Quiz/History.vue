@@ -72,9 +72,19 @@ const formatDate = (dateString) => {
                             <h3 class="font-bold text-slate-100 text-base leading-snug">
                                 {{ attempt.quiz ? attempt.quiz.title : 'Kuis dihapus' }}
                             </h3>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-1">
-                                {{ formatDate(attempt.created_at) }}
-                            </span>
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <template v-if="attempt.quiz">
+                                    <span v-if="attempt.quiz.is_daily_quiz" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        Kuis Harian
+                                    </span>
+                                    <span v-else class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                                        Kuis Event
+                                    </span>
+                                </template>
+                                <span class="text-[10px] text-slate-500 font-medium block">
+                                    {{ formatDate(attempt.created_at) }}
+                                </span>
+                            </div>
                         </div>
                         
                         <!-- Score badge -->
