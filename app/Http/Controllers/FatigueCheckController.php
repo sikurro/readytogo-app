@@ -11,6 +11,49 @@ use Inertia\Inertia;
 class FatigueCheckController extends Controller
 {
     /**
+     * Display the Fatigue Hub page.
+     */
+    public function hub(Request $request)
+    {
+        $todayCheck = FatigueCheck::where('user_id', $request->user()->id)
+            ->whereDate('created_at', today())
+            ->latest()
+            ->first();
+
+        // Calculate stats for the last 30 days
+        $thirtyDaysAgo = now()->subDays(30);
+        $recentChecks = FatigueCheck::where('user_id', $request->user()->id)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->get();
+
+        $stats = [
+            'avg_reaction_time' => $recentChecks->avg('reaction_time_ms') ? round($recentChecks->avg('reaction_time_ms')) : 0,
+            'total_tests' => $recentChecks->count(),
+            'total_fit' => $recentChecks->where('is_fit', true)->count(),
+        ];
+        
+        $stats['fit_rate'] = $stats['total_tests'] > 0 
+            ? round(($stats['total_fit'] / $stats['total_tests']) * 100) 
+            : 0;
+
+        $tips = [
+            "Aturan 20-20-20: Setiap 20 menit menatap layar, istirahatkan mata dengan melihat objek sejauh 20 kaki (6 meter) selama 20 detik.",
+            "Dehidrasi ringan dapat menurunkan konsentrasi dan memperlambat waktu reaksi. Pastikan Anda minum cukup air hari ini.",
+            "Kurang tidur 2 jam dapat menurunkan waktu reaksi setara dengan mengonsumsi 1 gelas alkohol.",
+            "Sempatkan berjemur 5-10 menit sebelum mulai bekerja. Cahaya matahari pagi membantu mengatur jam biologis tubuh.",
+            "Lakukan peregangan leher dan bahu selama 3 menit setiap beberapa jam untuk mengurangi kekakuan otot dan mencegah kelelahan fisik.",
+            "Mengantuk saat bekerja? Lakukan *power nap* (tidur singkat) selama 15-20 menit saat istirahat untuk memulihkan fokus mental.",
+        ];
+        $dailyTip = \Illuminate\Support\Arr::random($tips);
+
+        return Inertia::render('Fatigue/Hub', [
+            'todayCheck' => $todayCheck,
+            'stats' => $stats,
+            'dailyTip' => $dailyTip,
+        ]);
+    }
+
+    /**
      * Display the initial questionnaire page.
      */
     public function index()

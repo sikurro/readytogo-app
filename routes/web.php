@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/quiz/history', [QuizController::class, 'history'])->name('quiz.history');
 
     // Fatigue Check Routes
+    Route::get('/fatigue/hub', [\App\Http\Controllers\FatigueCheckController::class, 'hub'])->name('fatigue.hub');
     Route::get('/fatigue/questionnaire', [\App\Http\Controllers\FatigueCheckController::class, 'index'])->name('fatigue.questionnaire');
     Route::post('/fatigue/questionnaire', [\App\Http\Controllers\FatigueCheckController::class, 'processQuestionnaire'])->name('fatigue.questionnaire.process');
     Route::get('/fatigue/reaction-test', [\App\Http\Controllers\FatigueCheckController::class, 'test'])->name('fatigue.test');
