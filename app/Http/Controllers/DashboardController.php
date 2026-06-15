@@ -46,10 +46,22 @@ class DashboardController extends Controller
 
         $statusBugarHariIni = $latestFatigueCheckToday ? $latestFatigueCheckToday->is_fit : null;
 
+        $tips = [
+            "Gunakan rompi keselamatan reflektif (high-visibility vest) setiap saat selama berada di area operasional dermaga agar terlihat oleh operator alat berat.",
+            "Selalu patuhi batas kecepatan kendaraan maksimum 20 km/jam saat mengemudi di dalam area operasional pelabuhan.",
+            "Jangan pernah berjalan atau berdiri di bawah muatan kargo yang sedang diangkat oleh crane atau spreader container.",
+            "Gunakan sepatu pelindung (safety shoes) baja untuk melindungi kaki dari risiko tertimpa kontainer atau benda berat di area stacking yard.",
+            "Pastikan tali tambat kapal (mooring lines) bebas dari puntiran dan jangan pernah berdiri di area sentakan balik (snap-back zone).",
+            "Laporkan segera jika melihat ceceran oli atau kerusakan struktur dermaga kepada petugas K3 pelabuhan untuk mencegah kecelakaan terpeleset.",
+            "Gunakan pelindung telinga (earplug/earmuff) saat bekerja dekat area dengan intensitas kebisingan tinggi seperti genset kapal atau ruang mesin crane."
+        ];
+        $safetyTip = \Illuminate\Support\Arr::random($tips);
+
         return Inertia::render('Petugas/Dashboard', [
             'activeEventQuiz' => $activeEventQuiz,
             'statusBugarHariIni' => $statusBugarHariIni,
             'hasAttemptedEventQuiz' => $hasAttemptedEventQuiz,
+            'safetyTip' => $safetyTip,
         ]);
     }
 
