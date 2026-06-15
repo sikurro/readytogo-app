@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-slate-950 text-slate-100 font-sans relative overflow-hidden selection:bg-amber-500 selection:text-slate-900">
+    <div class="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-slate-950 text-slate-100 font-sans relative overflow-hidden selection:bg-amber-500 selection:text-slate-900">
         <!-- Background Light Glows -->
         <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none"></div>
         <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-600/5 rounded-full blur-[130px] pointer-events-none"></div>
@@ -16,7 +16,7 @@ import { Link } from '@inertiajs/vue3';
         </div>
 
         <div
-            class="w-full sm:max-w-md mt-6 px-6 py-5 bg-slate-900/80 backdrop-blur-md border border-slate-800/80 shadow-2xl shadow-amber-500/5 overflow-hidden sm:rounded-2xl relative z-10"
+            class="w-full max-w-md mt-6 px-6 py-5 bg-slate-900/80 backdrop-blur-md border border-slate-800/80 shadow-2xl shadow-amber-500/5 overflow-hidden rounded-2xl relative z-10"
         >
             <slot />
         </div>
