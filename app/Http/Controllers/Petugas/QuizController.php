@@ -17,18 +17,78 @@ class QuizController extends Controller
         $quizzes = Quiz::where('is_active', true)->where('is_daily_quiz', true)->get();
         $userId = Auth::id();
         
-        $quizzesWithStatus = $quizzes->map(function ($quiz) use ($userId) {
-            $hasPlayedToday = QuizAttempt::where('user_id', $userId)
+        $todayAttempt = null;
+        $quizzesWithStatus = $quizzes->map(function ($quiz) use ($userId, &$todayAttempt) {
+            $attempt = QuizAttempt::where('user_id', $userId)
                 ->where('quiz_id', $quiz->id)
                 ->whereDate('created_at', today())
-                ->exists();
+                ->first();
                 
-            $quiz->has_played_today = $hasPlayedToday;
+            $quiz->has_played_today = $attempt ? true : false;
+            if ($attempt) {
+                $todayAttempt = $attempt;
+            }
             return $quiz;
         });
 
+        // 2. Rank Data
+        $currentMonth = date('Y-m');
+        $leaderboard = QuizAttempt::whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
+            ->where('month_year', $currentMonth)
+            ->selectRaw('user_id, SUM(score) as total_score')
+            ->groupBy('user_id')
+            ->orderByDesc('total_score')
+            ->get();
+
+        // Cari posisi rank
+        $userRank = null;
+        $userTotalScore = 0;
+        foreach ($leaderboard as $index => $item) {
+            if ($item->user_id === $userId) {
+                $userRank = $index + 1;
+                $userTotalScore = $item->total_score;
+                break;
+            }
+        }
+        $rankData = [
+            'rank' => $userRank,
+            'total_score' => $userTotalScore,
+            'total_participants' => $leaderboard->count(),
+        ];
+
+        // 3. Stats (Bulan Ini)
+        $recentAttempts = QuizAttempt::where('user_id', $userId)
+            ->whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
+            ->where('month_year', $currentMonth)
+            ->get();
+
+        $stats = [
+            'total_points_30d' => $recentAttempts->sum('score'),
+            'total_played' => $recentAttempts->count(),
+        ];
+
+        // 4. Daily Trivia
+        $trivias = [
+            "Helm keselamatan berwarna putih biasanya digunakan oleh manajer, pengawas, insinyur, atau mandor di area proyek.",
+            "LOTO (Lock Out Tag Out) adalah prosedur keselamatan kritis untuk memastikan alat berbahaya dimatikan dengan benar sebelum perawatan.",
+            "Posisi duduk yang baik saat bekerja di depan komputer adalah layar sejajar dengan mata dan kaki menapak rata di lantai.",
+            "Mengabaikan prosedur K3 (SOP) adalah penyebab utama lebih dari 80% insiden kecelakaan kerja di lapangan.",
+            "Alat Pemadam Api Ringan (APAR) jenis CO2 sangat cocok digunakan untuk kebakaran akibat korsleting listrik.",
+            "Rambu keselamatan berwarna KUNING menandakan PERINGATAN (Warning) akan adanya potensi bahaya di area tersebut.",
+            "Kelelahan (Fatigue) dapat menurunkan waktu reaksi setara dengan mabuk ringan. Jangan paksakan diri bekerja berat jika kurang istirahat."
+        ];
+        $dailyTrivia = \Illuminate\Support\Arr::random($trivias);
+
         return Inertia::render('Petugas/Quiz/Index', [
             'quizzes' => $quizzesWithStatus,
+            'todayAttempt' => $todayAttempt,
+            'rankData' => $rankData,
+            'stats' => $stats,
+            'dailyTrivia' => $dailyTrivia,
         ]);
     }
 
