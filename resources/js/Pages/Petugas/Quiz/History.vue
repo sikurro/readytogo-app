@@ -65,7 +65,12 @@ const formatDate = (dateString) => {
                 <div 
                     v-for="attempt in history" 
                     :key="attempt.id" 
-                    class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-lg hover:border-slate-700/80 transition-all duration-200"
+                    :class="[
+                        'rounded-2xl p-4 shadow-lg transition-all duration-200 border',
+                        attempt.quiz && !attempt.quiz.is_daily_quiz
+                            ? 'bg-gradient-to-br from-violet-900/30 to-slate-900 border-violet-500/30 hover:border-violet-500/50'
+                            : 'bg-slate-900 border-slate-800/80 hover:border-slate-700/80'
+                    ]"
                 >
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div>
