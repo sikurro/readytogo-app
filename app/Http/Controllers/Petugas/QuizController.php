@@ -58,10 +58,12 @@ class QuizController extends Controller
             'total_participants' => $leaderboard->count(),
         ];
 
-        // 3. Stats (30 days)
-        $thirtyDaysAgo = now()->subDays(30);
+        // 3. Stats (Bulan Ini)
         $recentAttempts = QuizAttempt::where('user_id', $userId)
-            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
+            ->where('month_year', $currentMonth)
             ->get();
 
         $stats = [

@@ -1,13 +1,27 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
 
-defineProps({
+const props = defineProps({
     quizzes: Array,
     todayAttempt: Object,
     rankData: Object,
     stats: Object,
     dailyTrivia: String,
+});
+
+const formattedTime = computed(() => {
+    if (!props.todayAttempt || !props.todayAttempt.time_ms) return '';
+    const ms = props.todayAttempt.time_ms;
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (minutes > 0) {
+        return `${minutes} menit ${seconds} detik`;
+    }
+    return `${seconds} detik`;
 });
 </script>
 
@@ -64,15 +78,22 @@ defineProps({
                                     KUIS SELESAI
                                 </h3>
                                 <div class="flex justify-center gap-4 mt-3">
-                                    <div class="bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800 text-center">
-                                        <span class="block text-[10px] text-slate-500 font-bold uppercase">Skor</span>
-                                        <span class="text-lg font-black text-amber-500">{{ todayAttempt.score }}</span>
+                                    <div class="bg-slate-950/50 rounded-xl px-5 py-3 border border-slate-800 text-center min-w-[80px]">
+                                        <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Skor</span>
+                                        <span class="text-3xl font-black text-amber-500">{{ todayAttempt.score }}</span>
                                     </div>
-                                    <div class="bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800 text-center">
-                                        <span class="block text-[10px] text-slate-500 font-bold uppercase">Benar</span>
-                                        <span class="text-lg font-black text-emerald-400">{{ todayAttempt.correct_answers }}</span>
+                                    <div class="bg-slate-950/50 rounded-xl px-5 py-3 border border-slate-800 text-center min-w-[80px]">
+                                        <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Benar</span>
+                                        <span class="text-3xl font-black text-emerald-400">{{ todayAttempt.correct_answers }}</span>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400 font-semibold">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-amber-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Waktu pengerjaan: {{ formattedTime }}</span>
                             </div>
                             
                             <p class="text-[11px] text-slate-400 bg-slate-950/50 rounded-lg px-3 py-2 mt-2">
@@ -114,7 +135,7 @@ defineProps({
 
             <!-- Tren & Statistik Section -->
             <div class="space-y-3">
-                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Statistik 30 Hari Terakhir</h3>
+                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Statistik Bulan Ini</h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-center relative overflow-hidden">
                         <div class="absolute -right-2 -bottom-2 opacity-5">
