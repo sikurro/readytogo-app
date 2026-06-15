@@ -65,16 +65,31 @@ const formatDate = (dateString) => {
                 <div 
                     v-for="attempt in history" 
                     :key="attempt.id" 
-                    class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-lg hover:border-slate-700/80 transition-all duration-200"
+                    :class="[
+                        'rounded-2xl p-4 shadow-lg transition-all duration-200 border',
+                        attempt.quiz && !attempt.quiz.is_daily_quiz
+                            ? 'bg-gradient-to-br from-violet-900/30 to-slate-900 border-violet-500/30 hover:border-violet-500/50'
+                            : 'bg-slate-900 border-slate-800/80 hover:border-slate-700/80'
+                    ]"
                 >
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div>
                             <h3 class="font-bold text-slate-100 text-base leading-snug">
                                 {{ attempt.quiz ? attempt.quiz.title : 'Kuis dihapus' }}
                             </h3>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-1">
-                                {{ formatDate(attempt.created_at) }}
-                            </span>
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <template v-if="attempt.quiz">
+                                    <span v-if="attempt.quiz.is_daily_quiz" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        Kuis Harian
+                                    </span>
+                                    <span v-else class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                                        Kuis Event
+                                    </span>
+                                </template>
+                                <span class="text-[10px] text-slate-500 font-medium block">
+                                    {{ formatDate(attempt.created_at) }}
+                                </span>
+                            </div>
                         </div>
                         
                         <!-- Score badge -->
