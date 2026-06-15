@@ -36,19 +36,21 @@ const formatDate = (dateStr) => {
     <MobileAppLayout>
         <div class="py-4 space-y-6">
             <!-- Header Section -->
-            <div>
-                <Link :href="route('fatigue.hub')" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-amber-500 transition-colors mb-4 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 group-hover:-translate-x-1 transition-transform">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-2xl font-black text-slate-100 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full"></span>
+                    Riwayat Fatigue Saya
+                </h2>
+                
+                <Link 
+                    :href="route('fatigue.hub')" 
+                    class="flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 font-bold bg-slate-900 border border-slate-800 hover:bg-slate-800/80 px-3.5 py-2 rounded-xl transition-all duration-200 active:scale-95"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                     </svg>
-                    Kembali ke Hub
+                    Kembali
                 </Link>
-                <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-black text-slate-100 flex items-center gap-2">
-                        <span class="w-2 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full"></span>
-                        Riwayat Fatigue Saya
-                    </h2>
-                </div>
             </div>
 
             <!-- Checks List -->
