@@ -3,6 +3,7 @@ import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import axios from 'axios';
 import DatePicker from '@/Components/DatePicker.vue';
 
 const props = defineProps({
@@ -38,6 +39,52 @@ const clearFilters = () => {
     search.value = '';
     status.value = '';
     date.value = '';
+};
+
+const isExporting = ref(false);
+const exportProgress = ref(0);
+
+const exportData = () => {
+    isExporting.value = true;
+    exportProgress.value = 0;
+
+    const interval = setInterval(() => {
+        if (exportProgress.value < 90) {
+            exportProgress.value += Math.floor(Math.random() * 10) + 5;
+            if (exportProgress.value > 90) exportProgress.value = 90;
+        }
+    }, 200);
+
+    axios.get(route('admin.fatigue-checks.export'), {
+        params: {
+            search: search.value,
+            status: status.value,
+            date: date.value
+        },
+        responseType: 'blob'
+    }).then(response => {
+        exportProgress.value = 100;
+        clearInterval(interval);
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'fatigue-checks.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+            isExporting.value = false;
+        }, 500);
+    }).catch(error => {
+        clearInterval(interval);
+        isExporting.value = false;
+        console.error("Export failed:", error);
+        alert("Gagal mengekspor data. Silakan coba lagi.");
+    });
 };
 
 const formatDate = (dateStr) => {
@@ -141,9 +188,15 @@ const formatDate = (dateStr) => {
                     <div>
                         <DatePicker v-model="date" />
                     </div>
-                    <div class="flex">
+                    <div class="flex gap-2">
                         <button @click="clearFilters" class="w-full md:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-350 hover:text-slate-200 font-semibold text-sm rounded-lg transition-colors border border-slate-700/60">
                             Reset Filter
+                        </button>
+                        <button @click="exportData" class="w-full md:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-lg transition-colors border border-emerald-500/60 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Export Excel
                         </button>
                     </div>
                 </div>
@@ -220,5 +273,33 @@ const formatDate = (dateStr) => {
                 </div>
             </div>
         </div>
+
+        <!-- Export Progress Modal -->
+        <div v-if="isExporting" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl w-full max-w-md">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 animate-pulse">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-100">Mengekspor Data</h3>
+                        <p class="text-sm text-slate-400">Harap tunggu, sedang menyiapkan file Excel...</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-400">Progress</span>
+                        <span class="text-emerald-400">{{ exportProgress }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out" :style="{ width: exportProgress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </AdminDashboardLayout>
 </template>

@@ -64,4 +64,15 @@ class FatigueCheckController extends Controller
             ]
         ]);
     }
+
+    public function export(Request $request)
+    {
+        $filters = $request->only(['search', 'status', 'date']);
+        $filename = 'fatigue-checks-' . now()->format('Y-m-d') . '.xlsx';
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\FatigueCheckExport($filters), 
+            $filename
+        );
+    }
 }

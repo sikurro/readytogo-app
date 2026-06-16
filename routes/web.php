@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('questions', App\Http\Controllers\Admin\QuestionController::class);
 
     Route::resource('fatigue-questions', App\Http\Controllers\Admin\FatigueQuestionController::class);
+    Route::get('fatigue-checks/export', [App\Http\Controllers\Admin\FatigueCheckController::class, 'export'])->name('fatigue-checks.export');
     Route::get('fatigue-checks', [App\Http\Controllers\Admin\FatigueCheckController::class, 'index'])->name('fatigue-checks.index');
 
     Route::get('users/template', [App\Http\Controllers\Admin\UserController::class, 'downloadTemplate'])->name('users.template');
