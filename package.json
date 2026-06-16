@@ -20,9 +20,11 @@
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
         "@vuepic/vue-datepicker": "^14.0.0",
+        "apexcharts": "^5.15.0",
         "chart.js": "^4.5.1",
         "chartjs-plugin-datalabels": "^2.2.0",
         "date-fns": "^4.4.0",
-        "vue-chartjs": "^5.3.3"
+        "vue-chartjs": "^5.3.3",
+        "vue3-apexcharts": "^1.11.1"
     }
 }
