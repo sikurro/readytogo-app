@@ -46,6 +46,13 @@ class DashboardController extends Controller
 
         $statusBugarHariIni = $latestFatigueCheckToday ? $latestFatigueCheckToday->is_fit : null;
 
+        $hasCompletedDailyQuizToday = $request->user()->quizAttempts()
+            ->whereDate('created_at', today())
+            ->whereHas('quiz', function($query) {
+                $query->where('is_daily_quiz', true);
+            })
+            ->exists();
+
         $tips = [
             "Gunakan rompi keselamatan reflektif (high-visibility vest) setiap saat selama berada di area operasional dermaga agar terlihat oleh operator alat berat.",
             "Selalu patuhi batas kecepatan kendaraan maksimum 20 km/jam saat mengemudi di dalam area operasional pelabuhan.",
@@ -62,6 +69,7 @@ class DashboardController extends Controller
             'statusBugarHariIni' => $statusBugarHariIni,
             'hasAttemptedEventQuiz' => $hasAttemptedEventQuiz,
             'safetyTip' => $safetyTip,
+            'hasCompletedDailyQuizToday' => $hasCompletedDailyQuizToday,
         ]);
     }
 
