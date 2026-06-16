@@ -3,6 +3,7 @@ import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import DatePicker from '@/Components/DatePicker.vue';
 
 const props = defineProps({
     fatigueChecks: Object,
@@ -138,7 +139,7 @@ const formatDate = (dateStr) => {
                         </select>
                     </div>
                     <div>
-                        <input v-model="date" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors duration-200" />
+                        <DatePicker v-model="date" />
                     </div>
                     <div class="flex">
                         <button @click="clearFilters" class="w-full md:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-350 hover:text-slate-200 font-semibold text-sm rounded-lg transition-colors border border-slate-700/60">
