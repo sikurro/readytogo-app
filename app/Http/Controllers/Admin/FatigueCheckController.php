@@ -32,7 +32,12 @@ class FatigueCheckController extends Controller
         }
 
         if ($date) {
-            $query->whereDate('created_at', $date);
+            if (strlen($date) === 7) { // Format: YYYY-MM
+                $query->whereYear('created_at', substr($date, 0, 4))
+                      ->whereMonth('created_at', substr($date, 5, 2));
+            } else {
+                $query->whereDate('created_at', $date);
+            }
         }
 
         // Paginate results
