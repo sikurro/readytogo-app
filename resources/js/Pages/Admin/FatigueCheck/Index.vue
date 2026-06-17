@@ -2,7 +2,7 @@
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 import DatePicker from '@/Components/DatePicker.vue';
 
@@ -10,12 +10,22 @@ const props = defineProps({
     fatigueChecks: Object,
     filters: Object,
     summary: Object,
+    notTestedUsers: Array,
 });
 
 const search = ref(props.filters?.search || '');
 const status = ref(props.filters?.status || '');
-const date = ref(props.filters?.date || '');
+const date = ref(props.filters?.date || new Date().toLocaleDateString('en-CA'));
 const isLoading = ref(false);
+
+const displayDate = computed(() => {
+    const d = date.value ? new Date(date.value) : new Date();
+    return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+});
 
 const handleSearch = () => {
     isLoading.value = true;
@@ -109,44 +119,47 @@ const formatDate = (dateStr) => {
         </template>
 
         <div class="space-y-6">
+            <div class="pb-2">
+                <h3 class="font-bold text-lg text-slate-200">Statistik Pemeriksaan Fatigue: {{ displayDate }}</h3>
+            </div>
             <!-- Summary Stats Widgets -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- Total Checks -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                <div @click="status = ''" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-slate-500 transition-all duration-300">
                     <div class="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.03 0 1.9.693 2.166 1.638m-7.377 0A48.536 48.536 0 0 1 12 3" />
                         </svg>
                     </div>
                     <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Tes Hari Ini</span>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Check Fatigue</span>
                         <span class="text-2xl font-black text-slate-100">{{ summary.total_today }}</span>
                     </div>
                 </div>
 
                 <!-- Fit Today -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                <div @click="status = 'fit'" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-emerald-500 transition-all duration-300">
                     <div class="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0110 21a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0114 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Petugas Fit (Hari Ini)</span>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Petugas Fit</span>
                         <span class="text-2xl font-black text-emerald-400">{{ summary.fit_today }}</span>
                     </div>
                 </div>
 
                 <!-- Unfit Today -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                <div @click="status = 'unfit'" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-rose-500 transition-all duration-300">
                     <div class="h-12 w-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Petugas Unfit (Hari Ini)</span>
-                        <span class="text-2xl font-black text-rose-455 text-rose-400">{{ summary.unfit_today }}</span>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Petugas Unfit</span>
+                        <span class="text-2xl font-black text-rose-400">{{ summary.unfit_today }}</span>
                     </div>
                 </div>
 
@@ -158,8 +171,32 @@ const formatDate = (dateStr) => {
                         </svg>
                     </div>
                     <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Rata-rata Reaksi (Hari Ini)</span>
-                        <span class="text-2xl font-black text-amber-450 text-amber-400">{{ summary.avg_reaction_time_today }} ms</span>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Rata-rata Reaksi</span>
+                        <span class="text-2xl font-black text-amber-400">{{ summary.avg_reaction_time_today }} ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Not Tested Users Block -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-lg text-slate-200">Petugas Belum Melakukan Check</h3>
+                    <p class="text-xs text-slate-400">Daftar petugas yang belum mengisi kuesioner fatigue pada tanggal yang dipilih.</p>
+                </div>
+                
+                <div v-if="notTestedUsers && notTestedUsers.length === 0" class="text-center py-6 text-slate-500 text-sm">
+                    Semua petugas telah melakukan tes pada tanggal ini.
+                </div>
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div v-for="user in notTestedUsers" :key="user.id" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                        <img :src="`https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff`" class="w-10 h-10 rounded-full shadow-sm" :alt="user.name">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-200 truncate">{{ user.name }}</p>
+                            <p class="text-xs text-slate-400 truncate">NIP: {{ user.nip || '-' }}</p>
+                        </div>
+                        <div>
+                            <span class="bg-slate-700 text-slate-300 text-[10px] uppercase font-bold px-2 py-1 rounded-md whitespace-nowrap">Belum Tes</span>
+                        </div>
                     </div>
                 </div>
             </div>
