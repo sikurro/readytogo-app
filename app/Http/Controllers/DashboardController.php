@@ -136,6 +136,22 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // Quiz attempts 30 days (for the 30-day pie chart)
+        $startDate = now()->subDays(29)->startOfDay();
+        $endDate = now()->endOfDay();
+        $attempts30Days = QuizAttempt::with(['quiz'])
+            ->whereHas('quiz', function ($q) {
+                $q->where('is_daily_quiz', 1);
+            })
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        $quiz30DaysCorrect = $attempts30Days->sum('correct_answers');
+        $quiz30DaysQuestions = $attempts30Days->sum(function ($attempt) {
+            if (!$attempt->quiz) return $attempt->correct_answers;
+            return $attempt->quiz->daily_question_limit ?: 10;
+        });
+        $quiz30DaysWrong = max(0, $quiz30DaysQuestions - $quiz30DaysCorrect);
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
@@ -146,6 +162,8 @@ class DashboardController extends Controller
                 'notTestedFatigueToday' => $notTestedFatigueToday,
                 'quizTakenToday' => $quizTakenToday,
                 'quizNotTakenToday' => $quizNotTakenToday,
+                'quiz30DaysCorrect' => $quiz30DaysCorrect,
+                'quiz30DaysWrong' => $quiz30DaysWrong,
             ],
             'top10Leaderboard' => $top10Leaderboard
         ]);
@@ -244,7 +262,7 @@ class DashboardController extends Controller
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $dateStr = $date->format('Y-m-d');
-            $dateLabel = $date->format('d M');
+            $dateLabel = $date->format('d-m');
             $quizLabels[] = $dateLabel;
 
             $dateAttempts = $attemptsByDate->get($dateStr);
@@ -269,6 +287,13 @@ class DashboardController extends Controller
             }
         }
 
+        $totalCorrect30Days = $attempts30Days->sum('correct_answers');
+        $totalQuestions30Days = $attempts30Days->sum(function ($attempt) {
+            if (!$attempt->quiz) return $attempt->correct_answers;
+            return $attempt->quiz->daily_question_limit ?: 10;
+        });
+        $totalWrong30Days = max(0, $totalQuestions30Days - $totalCorrect30Days);
+
         return response()->json([
             'fatigueToday' => [
                 'fit' => $fitToday,
@@ -287,6 +312,10 @@ class DashboardController extends Controller
                 'avgScore' => $quizAvgScore,
                 'avgAccuracy' => $quizAvgAccuracy,
                 'totalAttempts' => $quizTotalAttempts,
+            ],
+            'quiz30Days' => [
+                'correct' => $totalCorrect30Days,
+                'wrong' => $totalWrong30Days,
             ]
         ]);
     }

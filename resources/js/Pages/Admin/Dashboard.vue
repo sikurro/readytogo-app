@@ -10,11 +10,13 @@ const props = defineProps({
     top10Leaderboard: Array,
 });
 
+const liveStats = ref({ ...props.stats });
+
 // Chart Data States
 const fatiguePieSeries = ref([
-    props.stats?.fitToday || 0,
-    props.stats?.unfitToday || 0,
-    props.stats?.notTestedFatigueToday || 0
+    liveStats.value?.fitToday || 0,
+    liveStats.value?.unfitToday || 0,
+    liveStats.value?.notTestedFatigueToday || 0
 ]);
 
 const fatiguePieOptions = ref({
@@ -25,13 +27,13 @@ const fatiguePieOptions = ref({
     theme: { mode: 'dark' },
     labels: ['Bugar (Fit)', 'Kelelahan (Unfit)', 'Belum Tes'],
     colors: ['#10b981', '#ef4444', '#64748b'], // Emerald, Rose, Slate
-    legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+    legend: { show: false },
     stroke: { show: false },
     dataLabels: { enabled: true },
     plotOptions: {
         pie: {
             donut: {
-                size: '70%',
+                size: '75%',
                 labels: {
                     show: true,
                     name: { show: true, fontSize: '12px', color: '#94a3b8' },
@@ -77,6 +79,14 @@ const fatigueMonthlyOptions = ref({
     stroke: { curve: 'smooth', width: 2 },
     dataLabels: {
         enabled: true,
+        formatter: function (val, opts) {
+            const fit = opts.w.globals.series[0][opts.dataPointIndex] || 0;
+            const unfit = opts.w.globals.series[1][opts.dataPointIndex] || 0;
+            if (fit > 0 || unfit > 0) {
+                return val;
+            }
+            return '';
+        },
         style: {
             fontSize: '9px',
             fontWeight: 'bold',
@@ -102,9 +112,13 @@ const fatigueMonthlyOptions = ref({
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
+            show: true,
+            rotate: -45,
+            rotateAlways: true,
+            maxHeight: 45,
             style: {
                 colors: '#64748b',
-                fontSize: '10px'
+                fontSize: '9px'
             }
         }
     },
@@ -123,6 +137,9 @@ const fatigueMonthlyOptions = ref({
         borderColor: '#1e293b',
         strokeDashArray: 4,
         position: 'back',
+        padding: {
+            bottom: -10
+        },
         xaxis: {
             lines: {
                 show: false
@@ -142,15 +159,12 @@ const fatigueMonthlyOptions = ref({
         }
     },
     legend: {
-        position: 'top',
-        horizontalAlign: 'right',
-        labels: { colors: '#94a3b8' },
-        markers: { radius: 12 }
+        show: false
     }
 });
 
 // Quiz Donut Chart (Today's Participation)
-const quizDonutSeries = ref([props.stats?.quizTakenToday || 0, props.stats?.quizNotTakenToday || 0]);
+const quizDonutSeries = ref([liveStats.value?.quizTakenToday || 0, liveStats.value?.quizNotTakenToday || 0]);
 const quizDonutOptions = ref({
     chart: {
         type: 'donut',
@@ -159,13 +173,13 @@ const quizDonutOptions = ref({
     theme: { mode: 'dark' },
     labels: ['Mengerjakan', 'Belum Mengerjakan'],
     colors: ['#3b82f6', '#475569'],
-    legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+    legend: { show: false },
     stroke: { show: false },
     dataLabels: { enabled: true },
     plotOptions: {
         pie: {
             donut: {
-                size: '70%',
+                size: '75%',
                 labels: {
                     show: true,
                     name: { show: true, fontSize: '12px', color: '#94a3b8' },
@@ -184,47 +198,43 @@ const quizDonutOptions = ref({
     }
 });
 
-// Quiz Knowledge Trend (30 Days)
-const quizTrendScoreSeries = ref([
-    { name: 'Rata-rata Skor', data: [] }
+// Quiz 30-day Comprehension Donut Chart
+const quiz30DaysDonutSeries = ref([
+    props.stats?.quiz30DaysCorrect || 0,
+    props.stats?.quiz30DaysWrong || 0
 ]);
 
-const quizTrendScoreOptions = ref({
+const quiz30DaysDonutOptions = ref({
     chart: {
-        id: 'quiz-score-trend',
-        type: 'area',
-        toolbar: { show: false },
+        type: 'donut',
         background: 'transparent'
     },
     theme: { mode: 'dark' },
-    colors: ['#3b82f6'],
-    fill: {
-        type: 'gradient',
-        gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.4,
-            opacityTo: 0.1,
-            stops: [0, 90, 100]
+    labels: ['Jawaban Benar', 'Jawaban Salah'],
+    colors: ['#10b981', '#ef4444'], // Emerald, Rose
+    legend: { show: false },
+    stroke: { show: false },
+    dataLabels: { enabled: true },
+    plotOptions: {
+        pie: {
+            donut: {
+                size: '75%',
+                labels: {
+                    show: true,
+                    name: { show: true, fontSize: '12px', color: '#94a3b8' },
+                    value: { show: true, fontSize: '20px', fontWeight: 'bold', color: '#f8fafc' },
+                    total: {
+                        show: true,
+                        label: 'Total Soal',
+                        color: '#94a3b8',
+                        formatter: function (w) {
+                            return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                        }
+                    }
+                }
+            }
         }
-    },
-    stroke: { curve: 'smooth', width: 2 },
-    xaxis: {
-        categories: [],
-        axisBorder: { show: false },
-        axisTicks: { show: false }
-    },
-    yaxis: {
-        min: 0,
-        max: 100,
-        labels: {
-            formatter: (val) => Math.round(val)
-        }
-    },
-    grid: {
-        borderColor: '#1e293b',
-        strokeDashArray: 4
-    },
-    tooltip: { theme: 'dark' }
+    }
 });
 
 // Quiz Comprehension Trend (30 Days)
@@ -245,21 +255,44 @@ const quizTrendAccuracyOptions = ref({
     xaxis: {
         categories: [],
         axisBorder: { show: false },
-        axisTicks: { show: false }
+        axisTicks: { show: false },
+        labels: {
+            show: true,
+            rotate: -45,
+            rotateAlways: true,
+            maxHeight: 45,
+            style: {
+                colors: '#64748b',
+                fontSize: '9px'
+            }
+        }
     },
     yaxis: {
         min: 0,
         max: 100,
+        decimalsInFloat: 0,
         labels: {
-            formatter: (val) => Math.round(val) + '%'
+            formatter: (val) => Math.round(val),
+            style: {
+                colors: '#64748b',
+                fontSize: '10px'
+            }
         }
     },
     grid: {
         borderColor: '#1e293b',
-        strokeDashArray: 4
+        strokeDashArray: 4,
+        padding: {
+            bottom: -10
+        }
     },
     tooltip: { theme: 'dark' }
 });
+
+const getPercentage = (value, total) => {
+    if (!total) return '0';
+    return ((value / total) * 100).toFixed(1).replace('.0', '');
+};
 
 let pollingInterval = null;
 
@@ -270,6 +303,11 @@ const fetchChartData = async () => {
 
         // Update Fatigue Today Donut Chart
         if (data.fatigueToday) {
+            liveStats.value.fitToday = data.fatigueToday.fit;
+            liveStats.value.unfitToday = data.fatigueToday.unfit;
+            liveStats.value.notTestedFatigueToday = data.fatigueToday.notTested;
+            liveStats.value.testedFatigueToday = data.fatigueToday.fit + data.fatigueToday.unfit;
+
             fatiguePieSeries.value = [
                 data.fatigueToday.fit,
                 data.fatigueToday.unfit,
@@ -288,15 +326,18 @@ const fetchChartData = async () => {
             xaxis: { ...fatigueMonthlyOptions.value.xaxis, categories: data.fatigueMonthly.labels }
         };
 
-        // Update Quiz 30-day Trend
-        quizTrendScoreSeries.value = [
-            { name: 'Rata-rata Skor', data: data.quizTrend.avgScore }
-        ];
-        quizTrendScoreOptions.value = {
-            ...quizTrendScoreOptions.value,
-            xaxis: { ...quizTrendScoreOptions.value.xaxis, categories: data.quizTrend.labels }
-        };
+        // Update Quiz 30-day Donut Chart
+        if (data.quiz30Days) {
+            liveStats.value.quiz30DaysCorrect = data.quiz30Days.correct;
+            liveStats.value.quiz30DaysWrong = data.quiz30Days.wrong;
 
+            quiz30DaysDonutSeries.value = [
+                data.quiz30Days.correct,
+                data.quiz30Days.wrong
+            ];
+        }
+
+        // Update Quiz 30-day Trend Line Chart
         quizTrendAccuracySeries.value = [
             { name: 'Persentase Tingkat Pemahaman (%)', data: data.quizTrend.avgAccuracy }
         ];
@@ -372,23 +413,23 @@ onUnmounted(() => {
                 <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Petugas</span>
-                        <span class="text-2xl font-extrabold text-slate-100 mt-2">{{ stats.totalUsers }}</span>
+                        <span class="text-2xl font-extrabold text-slate-100 mt-2">{{ liveStats.totalUsers }}</span>
                     </div>
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sudah Tes Hari Ini</span>
-                        <span class="text-2xl font-extrabold text-indigo-400 mt-2">{{ stats.testedFatigueToday }}</span>
+                        <span class="text-2xl font-extrabold text-indigo-400 mt-2">{{ liveStats.testedFatigueToday }}</span>
                     </div>
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Fit Hari Ini</span>
-                        <span class="text-2xl font-extrabold text-emerald-400 mt-2">{{ stats.fitToday }}</span>
+                        <span class="text-2xl font-extrabold text-emerald-400 mt-2">{{ liveStats.fitToday }}</span>
                     </div>
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Unfit/Fatigue</span>
-                        <span class="text-2xl font-extrabold text-rose-500 mt-2">{{ stats.unfitToday }}</span>
+                        <span class="text-2xl font-extrabold text-rose-500 mt-2">{{ liveStats.unfitToday }}</span>
                     </div>
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Belum Tes Hari Ini</span>
-                        <span class="text-2xl font-extrabold text-slate-400 mt-2">{{ stats.notTestedFatigueToday }}</span>
+                        <span class="text-2xl font-extrabold text-slate-400 mt-2">{{ liveStats.notTestedFatigueToday }}</span>
                     </div>
                 </div>
 
@@ -400,8 +441,10 @@ onUnmounted(() => {
                             <h3 class="font-bold text-slate-200 text-sm">Uji Fatigue Hari Ini</h3>
                             <p class="text-xs text-slate-500 mb-4">Rasio kepatuhan dan status uji fatigue petugas hari ini.</p>
                         </div>
-                        <div class="flex-1 flex items-center justify-center">
+                        <div class="flex-1 flex items-center justify-center min-h-[220px]">
                             <apexchart
+                                type="donut"
+                                height="220"
                                 width="100%"
                                 :options="fatiguePieOptions"
                                 :series="fatiguePieSeries"
@@ -409,30 +452,58 @@ onUnmounted(() => {
                         </div>
                         <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-800 text-center">
                             <div>
-                                <span class="text-[10px] text-emerald-400 block uppercase tracking-wider">Fit</span>
-                                <span class="text-lg font-bold text-emerald-400">{{ stats.fitToday }}</span>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Fit
+                                </span>
+                                <span class="text-lg font-bold text-emerald-400 block mt-1">
+                                    {{ liveStats.fitToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.fitToday, (liveStats.fitToday || 0) + (liveStats.unfitToday || 0) + (liveStats.notTestedFatigueToday || 0)) }}%)</span>
+                                </span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-rose-500 block uppercase tracking-wider">Unfit</span>
-                                <span class="text-lg font-bold text-rose-500">{{ stats.unfitToday }}</span>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-rose-500 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Unfit
+                                </span>
+                                <span class="text-lg font-bold text-rose-500 block mt-1">
+                                    {{ liveStats.unfitToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.unfitToday, (liveStats.fitToday || 0) + (liveStats.unfitToday || 0) + (liveStats.notTestedFatigueToday || 0)) }}%)</span>
+                                </span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Belum</span>
-                                <span class="text-lg font-bold text-slate-400">{{ stats.notTestedFatigueToday }}</span>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-slate-500"></span> Belum
+                                </span>
+                                <span class="text-lg font-bold text-slate-400 block mt-1">
+                                    {{ liveStats.notTestedFatigueToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.notTestedFatigueToday, (liveStats.fitToday || 0) + (liveStats.unfitToday || 0) + (liveStats.notTestedFatigueToday || 0)) }}%)</span>
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Monthly Chart (Tren Fatigue Bulan Ini) -->
-                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                        <div class="flex items-center justify-between">
+                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h3 class="font-bold text-slate-200 text-sm">Tren Fatigue Bulan Ini</h3>
                                 <p class="text-xs text-slate-500">Total volume uji fatigue harian bulan berjalan.</p>
                             </div>
-                            <span class="text-[10px] bg-slate-800 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Harian</span>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 text-[10px]">
+                                    <span class="flex items-center gap-1.5 text-slate-400 font-medium">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Bugar
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-slate-400 font-medium">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span> Kelelahan
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-slate-400 font-medium">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#64748b]"></span> Belum Tes
+                                    </span>
+                                </div>
+                                <span class="text-[10px] bg-slate-800 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Harian</span>
+                            </div>
                         </div>
-                        <div class="h-80">
+                        <div class="flex-1 min-h-[280px]">
                             <apexchart
                                 height="100%"
                                 width="100%"
@@ -462,8 +533,10 @@ onUnmounted(() => {
                             <h3 class="font-bold text-slate-200 text-sm">Partisipasi Kuis Hari Ini</h3>
                             <p class="text-xs text-slate-500 mb-4">Rasio petugas yang sudah vs belum menyelesaikan kuis harian.</p>
                         </div>
-                        <div class="flex-1 flex items-center justify-center">
+                        <div class="flex-1 flex items-center justify-center min-h-[220px]">
                             <apexchart
+                                type="donut"
+                                height="220"
                                 width="100%"
                                 :options="quizDonutOptions"
                                 :series="quizDonutSeries"
@@ -471,12 +544,22 @@ onUnmounted(() => {
                         </div>
                         <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800 text-center">
                             <div>
-                                <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Ikut Kuis</span>
-                                <span class="text-lg font-bold text-blue-400">{{ stats.quizTakenToday }}</span>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-blue-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Ikut Kuis
+                                </span>
+                                <span class="text-lg font-bold text-blue-400 block mt-1">
+                                    {{ stats.quizTakenToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(stats.quizTakenToday, (stats.quizTakenToday || 0) + (stats.quizNotTakenToday || 0)) }}%)</span>
+                                </span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Belum Ikut</span>
-                                <span class="text-lg font-bold text-slate-300">{{ stats.quizNotTakenToday }}</span>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-slate-500"></span> Belum Ikut
+                                </span>
+                                <span class="text-lg font-bold text-slate-300 block mt-1">
+                                    {{ stats.quizNotTakenToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(stats.quizNotTakenToday, (stats.quizTakenToday || 0) + (stats.quizNotTakenToday || 0)) }}%)</span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -531,30 +614,51 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Quiz Trend Charts (30 Days) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Knowledge Trend (Avg Score) -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Tingkat Pemahaman K3 (30 Hari Terakhir) Donut Chart -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
                         <div>
-                            <h3 class="font-bold text-slate-200 text-sm">Tren Perkembangan Pengetahuan K3 (30 Hari Terakhir)</h3>
-                            <p class="text-xs text-slate-500">Grafik rata-rata skor kuis harian dalam 30 hari terakhir.</p>
+                            <h3 class="font-bold text-slate-200 text-sm">Tingkat Pemahaman K3 (30 Hari Terakhir)</h3>
+                            <p class="text-xs text-slate-500 mb-4">Perbandingan jawaban benar dan salah dari kuis 30 hari terakhir.</p>
                         </div>
-                        <div class="h-72">
+                        <div class="flex-1 flex items-center justify-center min-h-[220px]">
                             <apexchart
-                                height="100%"
+                                type="donut"
+                                height="220"
                                 width="100%"
-                                :options="quizTrendScoreOptions"
-                                :series="quizTrendScoreSeries"
+                                :options="quiz30DaysDonutOptions"
+                                :series="quiz30DaysDonutSeries"
                             />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800 text-center">
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Jawaban Benar
+                                </span>
+                                <span class="text-lg font-bold text-emerald-400 block mt-1">
+                                    {{ liveStats.quiz30DaysCorrect }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.quiz30DaysCorrect, (liveStats.quiz30DaysCorrect || 0) + (liveStats.quiz30DaysWrong || 0)) }}%)</span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-rose-500 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Jawaban Salah
+                                </span>
+                                <span class="text-lg font-bold text-rose-500 block mt-1">
+                                    {{ liveStats.quiz30DaysWrong }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.quiz30DaysWrong, (liveStats.quiz30DaysCorrect || 0) + (liveStats.quiz30DaysWrong || 0)) }}%)</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Comprehension Trend (Avg Accuracy) -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
                         <div>
                             <h3 class="font-bold text-slate-200 text-sm">Persentase Tingkat Pemahaman K3 (30 Hari Terakhir)</h3>
                             <p class="text-xs text-slate-500">Tingkat akurasi jawaban benar petugas dalam kuis harian.</p>
                         </div>
-                        <div class="h-72">
+                        <div class="flex-1 min-h-[280px]">
                             <apexchart
                                 height="100%"
                                 width="100%"
