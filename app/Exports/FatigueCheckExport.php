@@ -24,6 +24,30 @@ class FatigueCheckExport implements FromQuery, WithHeadings, WithMapping
         $search = $this->filters['search'] ?? null;
         $status = $this->filters['status'] ?? null;
         $date = $this->filters['date'] ?? null;
+        $targetDate = $date ? \Carbon\Carbon::parse($date) : \Carbon\Carbon::today();
+
+        if ($status === 'belum_check') {
+            $query = \App\Models\User::whereHas('role', function ($q) {
+                $q->where('name', 'Petugas');
+            })->whereDoesntHave('fatigueChecks', function ($q) use ($targetDate, $date) {
+                if ($date && strlen($date) === 7) {
+                    $q->whereYear('created_at', substr($date, 0, 4))
+                      ->whereMonth('created_at', substr($date, 5, 2));
+                } else {
+                    $q->whereDate('created_at', $targetDate);
+                }
+            })->with(['location']);
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('nip', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            return $query;
+        }
 
         $query = FatigueCheck::with(['user.location', 'answers'])->latest();
 
@@ -72,6 +96,24 @@ class FatigueCheckExport implements FromQuery, WithHeadings, WithMapping
 
     public function map($row): array
     {
+        if ($row instanceof \App\Models\User) {
+            $rowArray = [
+                '-',
+                $row->name ?? '-',
+                $row->nip ?? '-',
+                $row->email ?? '-',
+                $row->location->name ?? '-',
+                'Belum Tes',
+                '-',
+            ];
+
+            foreach ($this->questions as $question) {
+                $rowArray[] = '-';
+            }
+
+            return $rowArray;
+        }
+
         $rowArray = [
             $row->created_at->format('Y-m-d H:i:s'),
             $row->user->name ?? '-',
