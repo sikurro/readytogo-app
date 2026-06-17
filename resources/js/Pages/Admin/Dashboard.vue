@@ -11,6 +11,7 @@ const props = defineProps({
 });
 
 const liveStats = ref({ ...props.stats });
+const liveLeaderboard = ref(props.top10Leaderboard || []);
 
 // Chart Data States
 const fatiguePieSeries = ref([
@@ -337,6 +338,22 @@ const fetchChartData = async () => {
             ];
         }
 
+        // Update Quiz Today
+        if (data.quizToday) {
+            liveStats.value.quizTakenToday = data.quizToday.taken;
+            liveStats.value.quizNotTakenToday = data.quizToday.notTaken;
+
+            quizDonutSeries.value = [
+                data.quizToday.taken,
+                data.quizToday.notTaken
+            ];
+        }
+
+        // Update Leaderboard
+        if (data.top10Leaderboard) {
+            liveLeaderboard.value = data.top10Leaderboard;
+        }
+
         // Update Quiz 30-day Trend Line Chart
         quizTrendAccuracySeries.value = [
             { name: 'Persentase Tingkat Pemahaman (%)', data: data.quizTrend.avgAccuracy }
@@ -548,8 +565,8 @@ onUnmounted(() => {
                                     <span class="w-2 h-2 rounded-full bg-blue-500"></span> Ikut Kuis
                                 </span>
                                 <span class="text-lg font-bold text-blue-400 block mt-1">
-                                    {{ stats.quizTakenToday }}
-                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(stats.quizTakenToday, (stats.quizTakenToday || 0) + (stats.quizNotTakenToday || 0)) }}%)</span>
+                                    {{ liveStats.quizTakenToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.quizTakenToday, (liveStats.quizTakenToday || 0) + (liveStats.quizNotTakenToday || 0)) }}%)</span>
                                 </span>
                             </div>
                             <div>
@@ -557,8 +574,8 @@ onUnmounted(() => {
                                     <span class="w-2 h-2 rounded-full bg-slate-500"></span> Belum Ikut
                                 </span>
                                 <span class="text-lg font-bold text-slate-300 block mt-1">
-                                    {{ stats.quizNotTakenToday }}
-                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(stats.quizNotTakenToday, (stats.quizTakenToday || 0) + (stats.quizNotTakenToday || 0)) }}%)</span>
+                                    {{ liveStats.quizNotTakenToday }}
+                                    <span class="text-xs text-slate-500 font-normal">({{ getPercentage(liveStats.quizNotTakenToday, (liveStats.quizTakenToday || 0) + (liveStats.quizNotTakenToday || 0)) }}%)</span>
                                 </span>
                             </div>
                         </div>
@@ -580,12 +597,12 @@ onUnmounted(() => {
                                 </Link>
                             </div>
 
-                            <div v-if="top10Leaderboard.length === 0" class="text-center py-12 text-slate-500 text-xs">
+                            <div v-if="liveLeaderboard.length === 0" class="text-center py-12 text-slate-500 text-xs">
                                 Belum ada petugas yang mengerjakan kuis harian pada bulan ini.
                             </div>
 
                             <div v-else class="max-h-[350px] overflow-y-auto pr-2 mt-2 divide-y divide-slate-800">
-                                <div v-for="(user, index) in top10Leaderboard" :key="user.id" class="flex items-center justify-between py-3">
+                                <div v-for="(user, index) in liveLeaderboard" :key="user.id" class="flex items-center justify-between py-3">
                                     <div class="flex items-center gap-3">
                                         <!-- Rank Medal/Badge -->
                                         <div class="flex items-center justify-center w-6 h-6 rounded-full font-extrabold text-xs"

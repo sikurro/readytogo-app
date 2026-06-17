@@ -294,6 +294,37 @@ class DashboardController extends Controller
         });
         $totalWrong30Days = max(0, $totalQuestions30Days - $totalCorrect30Days);
 
+        // --- Quiz Participation Today ---
+        $quizTakenToday = QuizAttempt::whereDate('created_at', today())
+            ->whereHas('quiz', function($q) {
+                $q->where('is_daily_quiz', true);
+            })
+            ->distinct('user_id')
+            ->count('user_id');
+        $quizNotTakenToday = max(0, $totalUsers - $quizTakenToday);
+
+        // --- Top 10 Leaderboard ---
+        $currentMonth = date('Y-m');
+        $top10Leaderboard = User::whereHas('role', function($q) {
+                $q->where('name', 'Petugas');
+            })
+            ->with(['location'])
+            ->withSum(['quizAttempts' => function($q) use ($currentMonth) {
+                $q->where('month_year', $currentMonth)
+                  ->whereHas('quiz', function($qQuiz) {
+                      $qQuiz->where('is_daily_quiz', true);
+                  });
+            }], 'score')
+            ->whereHas('quizAttempts', function($q) use ($currentMonth) {
+                $q->where('month_year', $currentMonth)
+                  ->whereHas('quiz', function($qQuiz) {
+                      $qQuiz->where('is_daily_quiz', true);
+                  });
+            })
+            ->orderByDesc('quiz_attempts_sum_score')
+            ->take(10)
+            ->get();
+
         return response()->json([
             'fatigueToday' => [
                 'fit' => $fitToday,
@@ -316,7 +347,12 @@ class DashboardController extends Controller
             'quiz30Days' => [
                 'correct' => $totalCorrect30Days,
                 'wrong' => $totalWrong30Days,
-            ]
+            ],
+            'quizToday' => [
+                'taken' => $quizTakenToday,
+                'notTaken' => $quizNotTakenToday,
+            ],
+            'top10Leaderboard' => $top10Leaderboard
         ]);
     }
 }
