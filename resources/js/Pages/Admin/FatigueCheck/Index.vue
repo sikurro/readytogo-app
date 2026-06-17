@@ -123,7 +123,7 @@ const formatDate = (dateStr) => {
                 <h3 class="font-bold text-lg text-slate-200">Statistik Pemeriksaan Fatigue: {{ displayDate }}</h3>
             </div>
             <!-- Summary Stats Widgets -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Total Checks -->
                 <div @click="status = ''" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-slate-500 transition-all duration-300">
                     <div class="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
@@ -132,7 +132,7 @@ const formatDate = (dateStr) => {
                         </svg>
                     </div>
                     <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Check Fatigue</span>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Check</span>
                         <span class="text-2xl font-black text-slate-100">{{ summary.total_today }}</span>
                     </div>
                 </div>
@@ -163,40 +163,29 @@ const formatDate = (dateStr) => {
                     </div>
                 </div>
 
+                <!-- Belum Check Fatigue -->
+                <div @click="status = 'belum_check'" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-amber-500 transition-all duration-300">
+                    <div class="h-12 w-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-450 border border-amber-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Belum Check</span>
+                        <span class="text-2xl font-black text-amber-450">{{ summary.belum_check }}</span>
+                    </div>
+                </div>
+
                 <!-- Avg Reaction Time -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20">
+                    <div class="h-12 w-12 rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-400 border border-slate-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                     </div>
                     <div>
                         <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Rata-rata Reaksi</span>
-                        <span class="text-2xl font-black text-amber-400">{{ summary.avg_reaction_time_today }} ms</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Not Tested Users Block -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="border-b border-slate-800 pb-3">
-                    <h3 class="font-bold text-lg text-slate-200">Petugas Belum Melakukan Check</h3>
-                    <p class="text-xs text-slate-400">Daftar petugas yang belum mengisi kuesioner fatigue pada tanggal yang dipilih.</p>
-                </div>
-                
-                <div v-if="notTestedUsers && notTestedUsers.length === 0" class="text-center py-6 text-slate-500 text-sm">
-                    Semua petugas telah melakukan tes pada tanggal ini.
-                </div>
-                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <div v-for="user in notTestedUsers" :key="user.id" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-                        <img :src="`https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff`" class="w-10 h-10 rounded-full shadow-sm" :alt="user.name">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold text-slate-200 truncate">{{ user.name }}</p>
-                            <p class="text-xs text-slate-400 truncate">NIP: {{ user.nip || '-' }}</p>
-                        </div>
-                        <div>
-                            <span class="bg-slate-700 text-slate-300 text-[10px] uppercase font-bold px-2 py-1 rounded-md whitespace-nowrap">Belum Tes</span>
-                        </div>
+                        <span class="text-2xl font-black text-slate-200">{{ summary.avg_reaction_time_today }} ms</span>
                     </div>
                 </div>
             </div>
@@ -220,6 +209,7 @@ const formatDate = (dateStr) => {
                             <option value="">Semua Status</option>
                             <option value="fit">Fit</option>
                             <option value="unfit">Tidak Fit (Unfit)</option>
+                            <option value="belum_check">Belum Check</option>
                         </select>
                     </div>
                     <div>
@@ -255,7 +245,7 @@ const formatDate = (dateStr) => {
                                 <th class="py-3 px-4">Waktu Pemeriksaan</th>
                                 <th class="py-3 px-4 text-center">Status Kuesioner</th>
                                 <th class="py-3 px-4 text-center">Kecepatan Reaksi</th>
-                                <th class="py-3 px-4 text-center">Kesimpulan Akhir</th>
+                                <th class="py-3 px-4 text-center">Konklusi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
@@ -268,11 +258,12 @@ const formatDate = (dateStr) => {
                                     {{ check.user?.location?.name || 'Tidak ada lokasi' }}
                                 </td>
                                 <td class="py-3 px-4 text-slate-350">
-                                    {{ formatDate(check.created_at) }}
+                                    <span v-if="check.is_belum_tes" class="text-slate-500 font-medium">-</span>
+                                    <span v-else>{{ formatDate(check.created_at) }}</span>
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <!-- questionnaire_status can be nullable/boolean -->
-                                    <span v-if="check.questionnaire_status === null" class="text-slate-500 font-medium">-</span>
+                                    <span v-if="check.is_belum_tes || check.questionnaire_status === null" class="text-slate-500 font-medium">-</span>
                                     <span v-else-if="check.questionnaire_status" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2.5 py-0.5 rounded-full text-xs font-semibold">
                                         Lolos
                                     </span>
@@ -281,10 +272,14 @@ const formatDate = (dateStr) => {
                                     </span>
                                 </td>
                                 <td class="py-3 px-4 text-center font-bold text-slate-100">
-                                    {{ check.reaction_time_ms ? `${check.reaction_time_ms} ms` : '-' }}
+                                    <span v-if="check.is_belum_tes || !check.reaction_time_ms" class="text-slate-500 font-normal">-</span>
+                                    <span v-else>{{ check.reaction_time_ms }} ms</span>
                                 </td>
                                 <td class="py-3 px-4 text-center">
-                                    <span v-if="check.is_fit === null" class="text-slate-500 font-medium">-</span>
+                                    <span v-if="check.is_belum_tes" class="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg shadow-slate-700/20">
+                                        BELUM TES
+                                    </span>
+                                    <span v-else-if="check.is_fit === null" class="text-slate-500 font-medium">-</span>
                                     <span v-else-if="check.is_fit" class="bg-emerald-500 text-slate-950 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg shadow-emerald-500/20">
                                         FIT TO WORK
                                     </span>
