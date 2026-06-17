@@ -4,6 +4,7 @@ import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import apexchart from 'vue3-apexcharts';
+import Modal from '@/Components/Modal.vue';
 
 const props = defineProps({
     stats: Object,
@@ -295,6 +296,28 @@ const getPercentage = (value, total) => {
     return ((value / total) * 100).toFixed(1).replace('.0', '');
 };
 
+// Modal States for Fatigue
+const showFatigueModal = ref(false);
+const isFatigueModalLoading = ref(false);
+const fatigueModalData = ref([]);
+const fatigueModalTitle = ref('');
+
+const openFatigueModal = async (status, title) => {
+    showFatigueModal.value = true;
+    isFatigueModalLoading.value = true;
+    fatigueModalTitle.value = title;
+    fatigueModalData.value = [];
+
+    try {
+        const response = await axios.get(`/admin/dashboard/fatigue-details?status=${status}`);
+        fatigueModalData.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch fatigue details:', error);
+    } finally {
+        isFatigueModalLoading.value = false;
+    }
+};
+
 let pollingInterval = null;
 
 const fetchChartData = async () => {
@@ -428,25 +451,45 @@ onUnmounted(() => {
 
                 <!-- Stats Grid Fatigue -->
                 <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Petugas</span>
+                    <div @click="openFatigueModal('total', 'Daftar Total Petugas')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-slate-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-300 transition-colors">Total Petugas</span>
                         <span class="text-2xl font-extrabold text-slate-100 mt-2">{{ liveStats.totalUsers }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 absolute top-4 right-4 text-slate-700 group-hover:text-slate-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sudah Tes Hari Ini</span>
+                    <div @click="openFatigueModal('tested', 'Petugas Sudah Tes Hari Ini')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-indigo-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-300 transition-colors">Sudah Tes Hari Ini</span>
                         <span class="text-2xl font-extrabold text-indigo-400 mt-2">{{ liveStats.testedFatigueToday }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 absolute top-4 right-4 text-slate-700 group-hover:text-indigo-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Fit Hari Ini</span>
+                    <div @click="openFatigueModal('fit', 'Petugas Fit Hari Ini')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-emerald-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider group-hover:text-emerald-300 transition-colors">Fit Hari Ini</span>
                         <span class="text-2xl font-extrabold text-emerald-400 mt-2">{{ liveStats.fitToday }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 absolute top-4 right-4 text-slate-700 group-hover:text-emerald-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Unfit/Fatigue</span>
+                    <div @click="openFatigueModal('unfit', 'Petugas Unfit/Fatigue')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-rose-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider group-hover:text-rose-400 transition-colors">Unfit/Fatigue</span>
                         <span class="text-2xl font-extrabold text-rose-500 mt-2">{{ liveStats.unfitToday }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 absolute top-4 right-4 text-slate-700 group-hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Belum Tes Hari Ini</span>
+                    <div @click="openFatigueModal('not_tested', 'Petugas Belum Tes Hari Ini')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-slate-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-300 transition-colors">Belum Tes Hari Ini</span>
                         <span class="text-2xl font-extrabold text-slate-400 mt-2">{{ liveStats.notTestedFatigueToday }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 absolute top-4 right-4 text-slate-700 group-hover:text-slate-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                     </div>
                 </div>
 
@@ -706,5 +749,65 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
+
+        <!-- Fatigue Detail Modal -->
+        <Modal :show="showFatigueModal" @close="showFatigueModal = false" maxWidth="2xl">
+            <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-slate-100">{{ fatigueModalTitle }}</h3>
+                    <button @click="showFatigueModal = false" class="text-slate-400 hover:text-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div v-if="isFatigueModalLoading" class="flex flex-col items-center justify-center py-12">
+                        <svg class="animate-spin h-8 w-8 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm text-slate-400">Memuat data petugas...</span>
+                    </div>
+                    <div v-else>
+                        <div v-if="fatigueModalData.length === 0" class="text-center py-8 text-slate-500">
+                            Tidak ada data petugas untuk kategori ini.
+                        </div>
+                        <div v-else class="max-h-[60vh] overflow-y-auto pr-2">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 rounded-tl-lg">Nama / NIP</th>
+                                        <th scope="col" class="px-4 py-3">Lokasi</th>
+                                        <th scope="col" class="px-4 py-3 text-center">Waktu Tes</th>
+                                        <th scope="col" class="px-4 py-3 text-center rounded-tr-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(user, index) in fatigueModalData" :key="user.id" class="border-b border-slate-800 hover:bg-slate-800/50">
+                                        <td class="px-4 py-3">
+                                            <div class="font-bold text-slate-200">{{ user.name }}</div>
+                                            <div class="text-xs text-slate-500">{{ user.nip }}</div>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">{{ user.location }}</td>
+                                        <td class="px-4 py-3 text-center text-slate-400">{{ user.time || '-' }}</td>
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="px-2.5 py-1 text-[10px] uppercase font-bold rounded-full"
+                                                :class="{
+                                                    'bg-emerald-500/20 text-emerald-400': user.status_label === 'Fit',
+                                                    'bg-rose-500/20 text-rose-500': user.status_label === 'Unfit',
+                                                    'bg-slate-800 text-slate-400': user.status_label === 'Belum Tes'
+                                                }">
+                                                {{ user.status_label }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Modal>
     </AdminDashboardLayout>
 </template>
