@@ -11,75 +11,142 @@ const props = defineProps({
 });
 
 // Chart Data States
-const fatigueRealtimeSeries = ref([
-    { name: 'Bugar (Fit)', data: [] },
-    { name: 'Kelelahan (Unfit)', data: [] },
-    { name: 'Total Tes', data: [] }
+const fatiguePieSeries = ref([
+    props.stats?.fitToday || 0,
+    props.stats?.unfitToday || 0,
+    props.stats?.notTestedFatigueToday || 0
 ]);
 
-const fatigueRealtimeOptions = ref({
+const fatiguePieOptions = ref({
     chart: {
-        id: 'fatigue-realtime',
-        type: 'line',
-        toolbar: { show: false },
-        animations: {
-            enabled: true,
-            easing: 'linear',
-            dynamicAnimation: { speed: 1000 }
-        },
+        type: 'donut',
         background: 'transparent'
     },
     theme: { mode: 'dark' },
-    colors: ['#10b981', '#ef4444', '#6366f1'],
-    stroke: { curve: 'smooth', width: 3 },
-    xaxis: {
-        categories: [],
-        axisBorder: { show: false },
-        axisTicks: { show: false }
-    },
-    yaxis: {
-        min: 0,
-        labels: {
-            formatter: (val) => Math.round(val)
+    labels: ['Bugar (Fit)', 'Kelelahan (Unfit)', 'Belum Tes'],
+    colors: ['#10b981', '#ef4444', '#64748b'], // Emerald, Rose, Slate
+    legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+    stroke: { show: false },
+    dataLabels: { enabled: true },
+    plotOptions: {
+        pie: {
+            donut: {
+                size: '70%',
+                labels: {
+                    show: true,
+                    name: { show: true, fontSize: '12px', color: '#94a3b8' },
+                    value: { show: true, fontSize: '20px', fontWeight: 'bold', color: '#f8fafc' },
+                    total: {
+                        show: true,
+                        label: 'Total Petugas',
+                        color: '#94a3b8',
+                        formatter: function (w) {
+                            return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                        }
+                    }
+                }
+            }
         }
-    },
-    grid: {
-        borderColor: '#1e293b',
-        strokeDashArray: 4
-    },
-    tooltip: { theme: 'dark' },
-    legend: { position: 'top', horizontalAlign: 'right' }
+    }
 });
 
 const fatigueMonthlySeries = ref([
-    { name: 'Total Fatigue Check', data: [] }
+    { name: 'Bugar (Fit)', data: [] },
+    { name: 'Kelelahan (Unfit)', data: [] },
+    { name: 'Belum Tes', data: [] }
 ]);
 
 const fatigueMonthlyOptions = ref({
     chart: {
         id: 'fatigue-monthly',
-        type: 'bar',
+        type: 'area',
         toolbar: { show: false },
         background: 'transparent'
     },
     theme: { mode: 'dark' },
-    colors: ['#a855f7'],
-    plotOptions: {
-        bar: {
-            borderRadius: 4,
-            horizontal: false,
+    colors: ['#10b981', '#ef4444', '#64748b'],
+    fill: {
+        type: 'gradient',
+        gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.3,
+            opacityTo: 0.05,
+            stops: [0, 90, 100]
         }
+    },
+    stroke: { curve: 'smooth', width: 2 },
+    dataLabels: {
+        enabled: true,
+        style: {
+            fontSize: '9px',
+            fontWeight: 'bold',
+        },
+        background: {
+            enabled: true,
+            foreColor: '#fff',
+            padding: 3,
+            borderRadius: 4,
+            borderWidth: 0,
+            opacity: 0.8
+        },
+        dropShadow: {
+            enabled: false
+        }
+    },
+    markers: {
+        size: 0,
+        hover: { size: 5 }
     },
     xaxis: {
         categories: [],
         axisBorder: { show: false },
-        axisTicks: { show: false }
+        axisTicks: { show: false },
+        labels: {
+            style: {
+                colors: '#64748b',
+                fontSize: '10px'
+            }
+        }
+    },
+    yaxis: {
+        min: 0,
+        labels: {
+            formatter: (val) => Math.round(val),
+            style: {
+                colors: '#64748b',
+                fontSize: '10px'
+            }
+        }
     },
     grid: {
+        show: true,
         borderColor: '#1e293b',
-        strokeDashArray: 4
+        strokeDashArray: 4,
+        position: 'back',
+        xaxis: {
+            lines: {
+                show: false
+            }
+        },
+        yaxis: {
+            lines: {
+                show: true
+            }
+        }
     },
-    tooltip: { theme: 'dark' }
+    tooltip: {
+        theme: 'dark',
+        x: { show: true },
+        y: {
+            formatter: (val) => `${Math.round(val)} Orang`
+        }
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        labels: { colors: '#94a3b8' },
+        markers: { radius: 12 }
+    }
 });
 
 // Quiz Donut Chart (Today's Participation)
@@ -201,20 +268,20 @@ const fetchChartData = async () => {
         const response = await axios.get('/admin/dashboard/chart-data');
         const data = response.data;
 
-        // Update Fatigue Realtime
-        fatigueRealtimeSeries.value = [
-            { name: 'Bugar (Fit)', data: data.fatigueRealtime.fit },
-            { name: 'Kelelahan (Unfit)', data: data.fatigueRealtime.unfit },
-            { name: 'Total Tes', data: data.fatigueRealtime.total }
-        ];
-        fatigueRealtimeOptions.value = {
-            ...fatigueRealtimeOptions.value,
-            xaxis: { ...fatigueRealtimeOptions.value.xaxis, categories: data.fatigueRealtime.labels }
-        };
+        // Update Fatigue Today Donut Chart
+        if (data.fatigueToday) {
+            fatiguePieSeries.value = [
+                data.fatigueToday.fit,
+                data.fatigueToday.unfit,
+                data.fatigueToday.notTested
+            ];
+        }
 
         // Update Fatigue Monthly
         fatigueMonthlySeries.value = [
-            { name: 'Total Fatigue Check', data: data.fatigueMonthly.total }
+            { name: 'Bugar (Fit)', data: data.fatigueMonthly.fit },
+            { name: 'Kelelahan (Unfit)', data: data.fatigueMonthly.unfit },
+            { name: 'Belum Tes', data: data.fatigueMonthly.notTested }
         ];
         fatigueMonthlyOptions.value = {
             ...fatigueMonthlyOptions.value,
@@ -302,7 +369,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Stats Grid Fatigue -->
-                <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Petugas</span>
                         <span class="text-2xl font-extrabold text-slate-100 mt-2">{{ stats.totalUsers }}</span>
@@ -323,41 +390,47 @@ onUnmounted(() => {
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Belum Tes Hari Ini</span>
                         <span class="text-2xl font-extrabold text-slate-400 mt-2">{{ stats.notTestedFatigueToday }}</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Total Tes Bulan Ini</span>
-                        <span class="text-2xl font-extrabold text-purple-400 mt-2">{{ stats.totalFatigueThisMonth }}</span>
-                    </div>
                 </div>
 
                 <!-- Fatigue Charts Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Realtime Chart -->
-                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-sm">Grafik Realtime Fatigue Check Hari Ini</h3>
-                                <p class="text-xs text-slate-500">Memonitor jumlah tes fatigue check per jam secara langsung.</p>
-                            </div>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-1 rounded-full uppercase tracking-wider">Per Jam</span>
+                    <!-- Today's Fatigue Donut Chart -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="font-bold text-slate-200 text-sm">Uji Fatigue Hari Ini</h3>
+                            <p class="text-xs text-slate-500 mb-4">Rasio kepatuhan dan status uji fatigue petugas hari ini.</p>
                         </div>
-                        <div class="h-80">
+                        <div class="flex-1 flex items-center justify-center">
                             <apexchart
-                                height="100%"
                                 width="100%"
-                                :options="fatigueRealtimeOptions"
-                                :series="fatigueRealtimeSeries"
+                                :options="fatiguePieOptions"
+                                :series="fatiguePieSeries"
                             />
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-800 text-center">
+                            <div>
+                                <span class="text-[10px] text-emerald-400 block uppercase tracking-wider">Fit</span>
+                                <span class="text-lg font-bold text-emerald-400">{{ stats.fitToday }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-rose-500 block uppercase tracking-wider">Unfit</span>
+                                <span class="text-lg font-bold text-rose-500">{{ stats.unfitToday }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Belum</span>
+                                <span class="text-lg font-bold text-slate-400">{{ stats.notTestedFatigueToday }}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Monthly Chart -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <!-- Monthly Chart (Tren Fatigue Bulan Ini) -->
+                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="font-bold text-slate-200 text-sm">Tren Bulan Ini</h3>
+                                <h3 class="font-bold text-slate-200 text-sm">Tren Fatigue Bulan Ini</h3>
                                 <p class="text-xs text-slate-500">Total volume uji fatigue harian bulan berjalan.</p>
                             </div>
-                            <span class="text-[10px] bg-slate-800 text-purple-400 border border-purple-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Harian</span>
+                            <span class="text-[10px] bg-slate-800 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Harian</span>
                         </div>
                         <div class="h-80">
                             <apexchart

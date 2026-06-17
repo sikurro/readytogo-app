@@ -105,11 +105,6 @@ class DashboardController extends Controller
         $unfitToday = $latestChecksToday->where('is_fit', false)->count();
         $notTestedFatigueToday = max(0, $totalUsers - $testedFatigueToday);
 
-        // Total checks this month
-        $totalFatigueThisMonth = FatigueCheck::whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->count();
-
         // Quiz attempts today (distinct users)
         $quizTakenToday = QuizAttempt::whereDate('created_at', today())
             ->whereHas('quiz', function($q) {
@@ -149,7 +144,6 @@ class DashboardController extends Controller
                 'fitToday' => $fitToday,
                 'unfitToday' => $unfitToday,
                 'notTestedFatigueToday' => $notTestedFatigueToday,
-                'totalFatigueThisMonth' => $totalFatigueThisMonth,
                 'quizTakenToday' => $quizTakenToday,
                 'quizNotTakenToday' => $quizNotTakenToday,
             ],
@@ -166,35 +160,23 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // --- Fatigue Realtime & Hourly Chart Data ---
-        $fatigueChecksToday = FatigueCheck::whereDate('created_at', today())
-            ->orderBy('created_at', 'asc')
-            ->get();
+        // --- Fatigue Today Summary ---
+        $totalUsers = User::whereHas('role', function ($q) {
+            $q->where('name', 'Petugas');
+        })->count();
 
-        $hourlyLabels = [];
-        $hourlyFit = [];
-        $hourlyUnfit = [];
-        $hourlyTotal = [];
+        $latestChecksToday = FatigueCheck::whereDate('created_at', today())
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('max(id)')
+                    ->from('fatigue_checks')
+                    ->whereDate('created_at', today())
+                    ->groupBy('user_id');
+            })->get();
 
-        for ($i = 0; $i < 24; $i++) {
-            $hourStr = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
-            $hourlyLabels[] = $hourStr;
-            $hourlyFit[$hourStr] = 0;
-            $hourlyUnfit[$hourStr] = 0;
-            $hourlyTotal[$hourStr] = 0;
-        }
-
-        foreach ($fatigueChecksToday as $check) {
-            $hour = $check->created_at->format('H') . ':00';
-            if (isset($hourlyTotal[$hour])) {
-                if ($check->is_fit) {
-                    $hourlyFit[$hour]++;
-                } else {
-                    $hourlyUnfit[$hour]++;
-                }
-                $hourlyTotal[$hour]++;
-            }
-        }
+        $testedFatigueToday = $latestChecksToday->count();
+        $fitToday = $latestChecksToday->where('is_fit', true)->count();
+        $unfitToday = $latestChecksToday->where('is_fit', false)->count();
+        $notTestedFatigueToday = max(0, $totalUsers - $testedFatigueToday);
 
         // --- Fatigue Monthly Chart Data ---
         $daysInMonth = now()->daysInMonth;
@@ -207,6 +189,7 @@ class DashboardController extends Controller
         $monthlyFit = [];
         $monthlyUnfit = [];
         $monthlyTotal = [];
+        $dailyTestedUsers = [];
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayStr = str_pad($day, 2, '0', STR_PAD_LEFT);
@@ -214,6 +197,7 @@ class DashboardController extends Controller
             $monthlyFit[$dayStr] = 0;
             $monthlyUnfit[$dayStr] = 0;
             $monthlyTotal[$dayStr] = 0;
+            $dailyTestedUsers[$dayStr] = [];
         }
 
         foreach ($fatigueChecksThisMonth as $check) {
@@ -225,7 +209,15 @@ class DashboardController extends Controller
                     $monthlyUnfit[$day]++;
                 }
                 $monthlyTotal[$day]++;
+                $dailyTestedUsers[$day][$check->user_id] = true;
             }
+        }
+
+        $monthlyNotTested = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayStr = str_pad($day, 2, '0', STR_PAD_LEFT);
+            $testedCount = count($dailyTestedUsers[$dayStr]);
+            $monthlyNotTested[$dayStr] = max(0, $totalUsers - $testedCount);
         }
 
         // --- Quiz Trend (Last 30 Days) ---
@@ -278,16 +270,16 @@ class DashboardController extends Controller
         }
 
         return response()->json([
-            'fatigueRealtime' => [
-                'labels' => $hourlyLabels,
-                'fit' => array_values($hourlyFit),
-                'unfit' => array_values($hourlyUnfit),
-                'total' => array_values($hourlyTotal),
+            'fatigueToday' => [
+                'fit' => $fitToday,
+                'unfit' => $unfitToday,
+                'notTested' => $notTestedFatigueToday
             ],
             'fatigueMonthly' => [
                 'labels' => $monthlyLabels,
                 'fit' => array_values($monthlyFit),
                 'unfit' => array_values($monthlyUnfit),
+                'notTested' => array_values($monthlyNotTested),
                 'total' => array_values($monthlyTotal),
             ],
             'quizTrend' => [
@@ -299,3 +291,6 @@ class DashboardController extends Controller
         ]);
     }
 }
+
+
+
