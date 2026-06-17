@@ -14,7 +14,7 @@ class FatigueCheckController extends Controller
     {
         $search = $request->query('search');
         $status = $request->query('status'); // 'fit' or 'unfit'
-        $date = $request->query('date'); // Y-m-d
+        $date = $request->query('date', Carbon::today()->format('Y-m-d')); // Y-m-d
 
         $query = FatigueCheck::with(['user.location'])
             ->latest();
@@ -44,14 +44,21 @@ class FatigueCheckController extends Controller
         $fatigueChecks = $query->paginate(15)->withQueryString();
 
         // Calculate summary statistics
-        $today = Carbon::today();
-        $totalToday = FatigueCheck::whereDate('created_at', $today)->count();
-        $fitToday = FatigueCheck::whereDate('created_at', $today)->where('is_fit', true)->count();
-        $unfitToday = FatigueCheck::whereDate('created_at', $today)->where('is_fit', false)->count();
+        $targetDate = $date ? Carbon::parse($date) : Carbon::today();
         
-        $avgReactionTimeToday = FatigueCheck::whereDate('created_at', $today)
+        $totalToday = FatigueCheck::whereDate('created_at', $targetDate)->count();
+        $fitToday = FatigueCheck::whereDate('created_at', $targetDate)->where('is_fit', true)->count();
+        $unfitToday = FatigueCheck::whereDate('created_at', $targetDate)->where('is_fit', false)->count();
+        
+        $avgReactionTimeToday = FatigueCheck::whereDate('created_at', $targetDate)
             ->whereNotNull('reaction_time_ms')
             ->avg('reaction_time_ms') ?? 0;
+
+        $notTestedUsers = \App\Models\User::whereHas('role', function ($q) {
+            $q->where('name', 'Petugas');
+        })->whereDoesntHave('fatigueChecks', function ($q) use ($targetDate) {
+            $q->whereDate('created_at', $targetDate);
+        })->select('id', 'name', 'nip')->get();
 
         return Inertia::render('Admin/FatigueCheck/Index', [
             'fatigueChecks' => $fatigueChecks,
@@ -61,7 +68,8 @@ class FatigueCheckController extends Controller
                 'fit_today' => $fitToday,
                 'unfit_today' => $unfitToday,
                 'avg_reaction_time_today' => round($avgReactionTimeToday, 1),
-            ]
+            ],
+            'notTestedUsers' => $notTestedUsers,
         ]);
     }
 
