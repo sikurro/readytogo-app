@@ -31,6 +31,7 @@ use App\Http\Controllers\DashboardController;
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->middleware(['auth', 'verified'])->name('admin.dashboard');
 Route::get('/admin/dashboard/chart-data', [DashboardController::class, 'chartData'])->middleware(['auth', 'verified'])->name('admin.dashboard.chart-data');
+Route::get('/admin/dashboard/fatigue-details', [DashboardController::class, 'fatigueDetails'])->middleware(['auth', 'verified'])->name('admin.dashboard.fatigue-details');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

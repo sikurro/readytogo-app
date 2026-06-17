@@ -355,6 +355,59 @@ class DashboardController extends Controller
             'top10Leaderboard' => $top10Leaderboard
         ]);
     }
+
+    /**
+     * Get user details for fatigue status today.
+     */
+    public function fatigueDetails(Request $request)
+    {
+        if (!$request->user()->isAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $status = $request->query('status');
+
+        $petugasUsers = User::whereHas('role', function ($q) {
+            $q->where('name', 'Petugas');
+        })->with('location')->get();
+
+        $latestChecksToday = FatigueCheck::whereDate('created_at', today())
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('max(id)')
+                    ->from('fatigue_checks')
+                    ->whereDate('created_at', today())
+                    ->groupBy('user_id');
+            })->get()->keyBy('user_id');
+
+        $result = [];
+
+        foreach ($petugasUsers as $user) {
+            $check = $latestChecksToday->get($user->id);
+            $isTested = $check !== null;
+            $isFit = $isTested && $check->is_fit;
+            $isUnfit = $isTested && !$check->is_fit;
+
+            $includeUser = false;
+            if ($status === 'total') $includeUser = true;
+            elseif ($status === 'tested' && $isTested) $includeUser = true;
+            elseif ($status === 'fit' && $isFit) $includeUser = true;
+            elseif ($status === 'unfit' && $isUnfit) $includeUser = true;
+            elseif ($status === 'not_tested' && !$isTested) $includeUser = true;
+
+            if ($includeUser) {
+                $result[] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'nip' => $user->nip ?? '-',
+                    'location' => $user->location ? $user->location->name : '-',
+                    'time' => $isTested ? $check->created_at->format('H:i') : null,
+                    'status_label' => $isTested ? ($isFit ? 'Fit' : 'Unfit') : 'Belum Tes',
+                ];
+            }
+        }
+
+        return response()->json($result);
+    }
 }
 
 
