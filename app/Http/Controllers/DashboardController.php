@@ -8,6 +8,7 @@ use App\Models\Quiz;
 use App\Models\User;
 use App\Models\FatigueCheck;
 use App\Models\QuizAttempt;
+use App\Models\Incident;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -153,6 +154,12 @@ class DashboardController extends Controller
         });
         $quiz30DaysWrong = max(0, $quiz30DaysQuestions - $quiz30DaysCorrect);
 
+        // Latest incidents
+        $latestIncidents = Incident::with('user')
+            ->latest()
+            ->take(5)
+            ->get();
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'totalUsers' => $totalUsers,
@@ -165,7 +172,8 @@ class DashboardController extends Controller
                 'quiz30DaysCorrect' => $quiz30DaysCorrect,
                 'quiz30DaysWrong' => $quiz30DaysWrong,
             ],
-            'top10Leaderboard' => $top10Leaderboard
+            'top10Leaderboard' => $top10Leaderboard,
+            'latestIncidents' => $latestIncidents,
         ]);
     }
 
@@ -325,6 +333,17 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // --- Incident Stats ---
+        $totalIncidents = Incident::count();
+        $openIncidents = Incident::where('status', 'open')->count();
+        $investigatingIncidents = Incident::where('status', 'investigating')->count();
+        $closedIncidents = Incident::where('status', 'closed')->count();
+
+        $latestIncidents = Incident::with('user')
+            ->latest()
+            ->take(5)
+            ->get();
+
         return response()->json([
             'fatigueToday' => [
                 'fit' => $fitToday,
@@ -352,6 +371,13 @@ class DashboardController extends Controller
                 'taken' => $quizTakenToday,
                 'notTaken' => $quizNotTakenToday,
             ],
+            'incidentData' => [
+                'total' => $totalIncidents,
+                'open' => $openIncidents,
+                'investigating' => $investigatingIncidents,
+                'closed' => $closedIncidents,
+            ],
+            'latestIncidents' => $latestIncidents,
             'top10Leaderboard' => $top10Leaderboard
         ]);
     }

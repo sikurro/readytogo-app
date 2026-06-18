@@ -9,10 +9,54 @@ import Modal from '@/Components/Modal.vue';
 const props = defineProps({
     stats: Object,
     top10Leaderboard: Array,
+    latestIncidents: Array,
 });
 
 const liveStats = ref({ ...props.stats });
 const liveLeaderboard = ref(props.top10Leaderboard || []);
+const liveIncidents = ref(props.latestIncidents || []);
+
+// Incident States
+const incidentStats = ref({
+    total: 0,
+    open: 0,
+    investigating: 0,
+    closed: 0
+});
+
+const incidentPieSeries = ref([0, 0, 0]);
+const incidentPieOptions = ref({
+    chart: {
+        type: 'donut',
+        background: 'transparent'
+    },
+    theme: { mode: 'dark' },
+    labels: ['Terbuka (Open)', 'Ditindak Lanjuti (Investigating)', 'Selesai (Closed)'],
+    colors: ['#ef4444', '#3b82f6', '#10b981'], // Rose, Blue, Emerald
+    legend: { show: false },
+    stroke: { show: false },
+    dataLabels: { enabled: true },
+    plotOptions: {
+        pie: {
+            donut: {
+                size: '75%',
+                labels: {
+                    show: true,
+                    name: { show: true, fontSize: '12px', color: '#94a3b8' },
+                    value: { show: true, fontSize: '20px', fontWeight: 'bold', color: '#f8fafc' },
+                    total: {
+                        show: true,
+                        label: 'Total Insiden',
+                        color: '#94a3b8',
+                        formatter: function (w) {
+                            return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+});
 
 // Chart Data States
 const fatiguePieSeries = ref([
@@ -377,6 +421,20 @@ const fetchChartData = async () => {
             liveLeaderboard.value = data.top10Leaderboard;
         }
 
+        // Update Incidents Stats and List
+        if (data.incidentData) {
+            incidentStats.value = data.incidentData;
+            incidentPieSeries.value = [
+                data.incidentData.open,
+                data.incidentData.investigating,
+                data.incidentData.closed
+            ];
+        }
+
+        if (data.latestIncidents) {
+            liveIncidents.value = data.latestIncidents;
+        }
+
         // Update Quiz 30-day Trend Line Chart
         quizTrendAccuracySeries.value = [
             { name: 'Persentase Tingkat Pemahaman (%)', data: data.quizTrend.avgAccuracy }
@@ -730,8 +788,8 @@ onUnmounted(() => {
                 </div>
             </div>
 
-            <!-- SECTION 3: INCIDENT REPORTING PLACEHOLDER -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <!-- SECTION 3: INCIDENT REPORTING WIDGETS -->
+            <div class="space-y-6">
                 <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                     <div class="p-2 bg-amber-500/10 rounded-xl text-amber-500">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -740,12 +798,130 @@ onUnmounted(() => {
                     </div>
                     <h2 class="text-xl font-bold text-slate-100">Pelaporan Insiden & Bahaya</h2>
                 </div>
-                <div class="text-center py-10 text-slate-500 text-xs flex flex-col items-center justify-center space-y-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-slate-700">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.68.34-1.34.72-2 1.14m12.32-6.52A9 9 0 1112 3v9.75l8.66-3.83z" />
-                    </svg>
-                    <p class="font-semibold text-slate-400">Fitur Pelaporan Insiden & Bahaya</p>
-                    <p class="text-slate-500 max-w-md">Modul statistik investigasi insiden maritim dan bahaya K3 pelabuhan akan diimplementasikan pada tahap selanjutnya.</p>
+
+                <!-- Stats Grid Incidents -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-amber-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider group-hover:text-amber-300 transition-colors">Total Insiden</span>
+                        <span class="text-2xl font-extrabold text-amber-400 mt-2">{{ incidentStats.total }}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-rose-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider group-hover:text-rose-400 transition-colors">Terbuka (Open)</span>
+                        <span class="text-2xl font-extrabold text-rose-500 mt-2">{{ incidentStats.open }}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-blue-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-blue-400 font-bold uppercase tracking-wider group-hover:text-blue-300 transition-colors">Ditindak Lanjuti</span>
+                        <span class="text-2xl font-extrabold text-blue-400 mt-2">{{ incidentStats.investigating }}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-emerald-500 transition-all duration-300 relative">
+                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider group-hover:text-emerald-300 transition-colors">Selesai (Closed)</span>
+                        <span class="text-2xl font-extrabold text-emerald-400 mt-2">{{ incidentStats.closed }}</span>
+                    </div>
+                </div>
+
+                <!-- Incidents Chart & Latest Reports Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Donut Chart -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="font-bold text-slate-200 text-sm">Status Laporan Insiden</h3>
+                            <p class="text-xs text-slate-500 mb-4 font-normal">Rasio penyelesaian laporan insiden & bahaya.</p>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px]">
+                            <apexchart
+                                type="donut"
+                                height="220"
+                                width="100%"
+                                :options="incidentPieOptions"
+                                :series="incidentPieSeries"
+                            />
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-800 text-center">
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-rose-500 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Terbuka
+                                </span>
+                                <span class="text-base font-bold text-rose-500 block mt-1">
+                                    {{ incidentStats.open }}
+                                    <span class="text-[10px] text-slate-500 font-normal">({{ getPercentage(incidentStats.open, incidentStats.total) }}%)</span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-blue-500 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Proses
+                                </span>
+                                <span class="text-base font-bold text-blue-500 block mt-1">
+                                    {{ incidentStats.investigating }}
+                                    <span class="text-[10px] text-slate-500 font-normal">({{ getPercentage(incidentStats.investigating, incidentStats.total) }}%)</span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Selesai
+                                </span>
+                                <span class="text-base font-bold text-emerald-400 block mt-1">
+                                    {{ incidentStats.closed }}
+                                    <span class="text-[10px] text-slate-500 font-normal">({{ getPercentage(incidentStats.closed, incidentStats.total) }}%)</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Latest 5 reports table -->
+                    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-sm">5 Laporan Insiden Terbaru</h3>
+                                <p class="text-xs text-slate-500 font-normal">Laporan insiden keselamatan dan bahaya K3 teranyar.</p>
+                            </div>
+                            <Link :href="route('admin.incidents.index')" class="text-xs text-blue-400 font-bold hover:underline flex items-center gap-1">
+                                Semua Laporan
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </Link>
+                        </div>
+
+                        <div v-if="liveIncidents.length === 0" class="text-center py-12 text-slate-500 text-xs">
+                            Belum ada laporan insiden yang masuk.
+                        </div>
+
+                        <div v-else class="overflow-x-auto pr-2 mt-2">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="text-xs uppercase bg-slate-850 text-slate-400">
+                                    <tr>
+                                        <th scope="col" class="px-3 py-2 rounded-l-lg">Pelapor / Waktu</th>
+                                        <th scope="col" class="px-3 py-2">Kategori & Deskripsi</th>
+                                        <th scope="col" class="px-3 py-2 text-center rounded-r-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    <tr v-for="incident in liveIncidents" :key="incident.id" class="border-b border-slate-800/50 hover:bg-slate-800/30">
+                                        <td class="px-3 py-3">
+                                            <div class="font-bold text-slate-200 text-xs">{{ incident.user?.name || 'Petugas' }}</div>
+                                            <div class="text-[10px] text-slate-500">{{ new Date(incident.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) }}</div>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-800 text-slate-300 border border-slate-700 capitalize">{{ incident.category }}</span>
+                                            <div class="text-xs text-slate-400 mt-1 line-clamp-1 max-w-[200px]" :title="incident.description">
+                                                {{ incident.description }}
+                                            </div>
+                                        </td>
+                                        <td class="px-3 py-3 text-center">
+                                            <span class="px-2.5 py-1 text-[10px] uppercase font-bold rounded-full"
+                                                :class="{
+                                                    'bg-rose-500/20 text-rose-500': incident.status === 'open',
+                                                    'bg-blue-500/20 text-blue-400': incident.status === 'investigating',
+                                                    'bg-emerald-500/20 text-emerald-400': incident.status === 'closed'
+                                                }">
+                                                {{ incident.status === 'open' ? 'Terbuka' : (incident.status === 'investigating' ? 'Proses' : 'Selesai') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
