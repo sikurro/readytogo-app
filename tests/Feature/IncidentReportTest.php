@@ -90,4 +90,71 @@ class IncidentReportTest extends TestCase
         $this->assertNotNull($incident->image_path);
         Storage::disk('public')->assertExists($incident->image_path);
     }
+
+    public function test_non_admin_cannot_access_admin_incidents_index()
+    {
+        $response = $this->actingAs($this->user)->get(route('admin.incidents.index'));
+        $response->assertStatus(403);
+    }
+
+    public function test_non_admin_cannot_update_incident_status()
+    {
+        $incident = Incident::create([
+            'user_id' => $this->user->id,
+            'category' => 'unsafe_condition',
+            'severity' => 'medium',
+            'description' => 'Contoh laporan.',
+            'status' => 'open'
+        ]);
+
+        $response = $this->actingAs($this->user)->put(route('admin.incidents.update-status', $incident->id), [
+            'status' => 'closed',
+            'admin_feedback' => 'Tindakan sudah diambil.'
+        ]);
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_can_access_admin_incidents_index()
+    {
+        $adminRole = Role::where('name', 'Admin')->first();
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+
+        $response = $this->actingAs($admin)->get(route('admin.incidents.index'));
+        $response->assertStatus(200);
+    }
+
+    public function test_admin_can_update_incident_status_and_trigger_notification()
+    {
+        $adminRole = Role::where('name', 'Admin')->first();
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+
+        $incident = Incident::create([
+            'user_id' => $this->user->id,
+            'category' => 'unsafe_condition',
+            'severity' => 'medium',
+            'description' => 'Tangga pandu patah.',
+            'status' => 'open'
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('admin.incidents.update-status', $incident->id), [
+            'status' => 'closed',
+            'admin_feedback' => 'Tangga pandu sudah diperbaiki.'
+        ]);
+
+        $response->assertRedirect(route('admin.incidents.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('incidents', [
+            'id' => $incident->id,
+            'status' => 'closed',
+            'admin_feedback' => 'Tangga pandu sudah diperbaiki.',
+            'resolved_by' => $admin->id,
+        ]);
+
+        // Check if database notification was sent to the reporter
+        $this->assertCount(1, $this->user->unreadNotifications);
+        $notification = $this->user->unreadNotifications->first();
+        $this->assertEquals('App\Notifications\IncidentResolved', $notification->type);
+        $this->assertEquals('Tangga pandu sudah diperbaiki.', $notification->data['admin_feedback']);
+    }
 }

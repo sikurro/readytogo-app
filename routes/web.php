@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/incidents', [\App\Http\Controllers\IncidentController::class, 'index'])->name('incidents.index');
     Route::get('/incidents/create', [\App\Http\Controllers\IncidentController::class, 'create'])->name('incidents.create');
     Route::post('/incidents', [\App\Http\Controllers\IncidentController::class, 'store'])->name('incidents.store');
+    Route::post('/notifications/mark-as-read', [\App\Http\Controllers\IncidentController::class, 'markNotificationsAsRead'])->name('notifications.mark-as-read');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
@@ -93,6 +94,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
     Route::post('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+
+    // Admin Incident Management Routes
+    Route::get('incidents', [App\Http\Controllers\IncidentController::class, 'adminIndex'])->name('incidents.index');
+    Route::put('incidents/{incident}/status', [App\Http\Controllers\IncidentController::class, 'updateStatus'])->name('incidents.update-status');
 });
 
 require __DIR__.'/auth.php';
