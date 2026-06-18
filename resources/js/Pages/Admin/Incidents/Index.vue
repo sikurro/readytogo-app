@@ -3,6 +3,7 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { ref, onMounted, watch } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     incidents: Object,
@@ -21,6 +22,10 @@ const selectedIncident = ref(null);
 const mapContainer = ref(null);
 let map = null;
 let markersGroup = null;
+
+// Export state
+const isExporting = ref(false);
+const exportProgress = ref(0);
 
 // CAPA Form
 const statusForm = useForm({
@@ -70,11 +75,46 @@ const applyFilters = () => {
 };
 
 const exportExcel = () => {
-    const url = new URL(route('admin.incidents.export'), window.location.origin);
-    if (filterStatus.value) url.searchParams.append('status', filterStatus.value);
-    if (filterCategory.value) url.searchParams.append('category', filterCategory.value);
-    if (filterSeverity.value) url.searchParams.append('severity', filterSeverity.value);
-    window.location.href = url.toString();
+    isExporting.value = true;
+    exportProgress.value = 0;
+
+    const interval = setInterval(() => {
+        if (exportProgress.value < 90) {
+            exportProgress.value += Math.floor(Math.random() * 10) + 5;
+            if (exportProgress.value > 90) exportProgress.value = 90;
+        }
+    }, 200);
+
+    axios.get(route('admin.incidents.export'), {
+        params: {
+            status: filterStatus.value,
+            category: filterCategory.value,
+            severity: filterSeverity.value
+        },
+        responseType: 'blob'
+    }).then(response => {
+        exportProgress.value = 100;
+        clearInterval(interval);
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'laporan-insiden.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+            isExporting.value = false;
+        }, 500);
+    }).catch(error => {
+        clearInterval(interval);
+        isExporting.value = false;
+        console.error("Export failed:", error);
+        alert("Gagal mengekspor data. Silakan coba lagi.");
+    });
 };
 
 // Watch for local filter changes to automatically trigger filter
@@ -602,6 +642,33 @@ watch(() => props.allIncidents, () => {
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Progress Modal -->
+        <div v-if="isExporting" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl w-full max-w-md">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 animate-pulse">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-100">Mengekspor Data</h3>
+                        <p class="text-sm text-slate-400">Harap tunggu, sedang menyiapkan file Excel...</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-400">Progress</span>
+                        <span class="text-emerald-400">{{ exportProgress }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out" :style="{ width: exportProgress + '%' }"></div>
+                    </div>
                 </div>
             </div>
         </div>
