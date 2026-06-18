@@ -191,7 +191,7 @@ const today = new Date().toLocaleDateString('id-ID', {
                 </Link>
 
                 <!-- Action 3: Report Incident -->
-                <button class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group">
+                <Link :href="route('incidents.index')" class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 font-extrabold py-4 px-5 rounded-xl flex items-center justify-between transition-all active:scale-95 group block">
                     <div class="flex items-center gap-3 text-left">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-red-500">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -204,7 +204,7 @@ const today = new Date().toLocaleDateString('id-ID', {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
-                </button>
+                </Link>
             </div>
         </div>
     </MobileAppLayout>
