@@ -55,6 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/fatigue/store', [\App\Http\Controllers\FatigueCheckController::class, 'store'])->name('fatigue.store');
     Route::get('/fatigue/result', [\App\Http\Controllers\FatigueCheckController::class, 'result'])->name('fatigue.result');
     Route::get('/fatigue/history', [\App\Http\Controllers\FatigueCheckController::class, 'history'])->name('fatigue.history');
+
+    // Incident Routes
+    Route::get('/incidents', [\App\Http\Controllers\IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create', [\App\Http\Controllers\IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [\App\Http\Controllers\IncidentController::class, 'store'])->name('incidents.store');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {

@@ -88,4 +88,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(FatigueCheck::class);
     }
+
+    public function incidents()
+    {
+        return $this->hasMany(Incident::class);
+    }
 }
