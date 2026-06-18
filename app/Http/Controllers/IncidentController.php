@@ -148,6 +148,94 @@ class IncidentController extends Controller
     }
 
     /**
+     * Display the Incident Dashboard.
+     */
+    public function dashboard(Request $request)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $totalMonthly = Incident::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $priorityCount = Incident::where('status', 'open')
+            ->where('severity', 'high')
+            ->count();
+
+        $totalIncidents = Incident::count();
+        $resolvedIncidents = Incident::where('status', 'closed')->count();
+        $resolutionRate = $totalIncidents > 0 ? round(($resolvedIncidents / $totalIncidents) * 100, 1) : 0;
+
+        $positiveObservations = Incident::where('category', 'positive_observation')->count();
+
+        // 6 Months Trend
+        $trendLabels = [];
+        $trendCounts = [];
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $trendLabels[] = $monthNames[$month->month - 1] . ' ' . $month->year;
+            $trendCounts[] = Incident::whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->count();
+        }
+
+        // Composition
+        $composition = [
+            'unsafe_condition' => Incident::where('category', 'unsafe_condition')->count(),
+            'unsafe_act' => Incident::where('category', 'unsafe_act')->count(),
+            'near_miss' => Incident::where('category', 'near_miss')->count(),
+            'positive_observation' => Incident::where('category', 'positive_observation')->count(),
+        ];
+
+        // Map Incidents
+        $mapIncidents = Incident::with('user')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->latest()
+            ->get();
+
+        // Top Reporters
+        $topReporters = \App\Models\User::whereHas('role', function($q) {
+                $q->where('name', 'Petugas');
+            })
+            ->withCount('incidents')
+            ->orderByDesc('incidents_count')
+            ->take(5)
+            ->get();
+
+        // Critical Incidents
+        $criticalIncidents = Incident::with('user')
+            ->where('status', 'open')
+            ->where(function($q) {
+                $q->where('severity', 'high')
+                  ->orWhere('category', 'near_miss');
+            })
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return Inertia::render('Admin/Incidents/Dashboard', [
+            'stats' => [
+                'totalMonthly' => $totalMonthly,
+                'priorityCount' => $priorityCount,
+                'resolutionRate' => $resolutionRate,
+                'positiveObservations' => $positiveObservations,
+            ],
+            'trend' => [
+                'labels' => $trendLabels,
+                'data' => $trendCounts,
+            ],
+            'composition' => $composition,
+            'mapIncidents' => $mapIncidents,
+            'topReporters' => $topReporters,
+            'criticalIncidents' => $criticalIncidents,
+        ]);
+    }
+
+    /**
      * Export admin incidents to Excel.
      */
     public function adminExport(Request $request)

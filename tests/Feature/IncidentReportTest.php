@@ -157,4 +157,28 @@ class IncidentReportTest extends TestCase
         $this->assertEquals('App\Notifications\IncidentResolved', $notification->type);
         $this->assertEquals('Tangga pandu sudah diperbaiki.', $notification->data['admin_feedback']);
     }
+
+    public function test_non_admin_cannot_access_incident_dashboard()
+    {
+        $response = $this->actingAs($this->user)->get(route('admin.incidents.dashboard'));
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_can_access_incident_dashboard()
+    {
+        $adminRole = Role::where('name', 'Admin')->first();
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+
+        $response = $this->actingAs($admin)->get(route('admin.incidents.dashboard'));
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Incidents/Dashboard')
+            ->has('stats')
+            ->has('trend')
+            ->has('composition')
+            ->has('mapIncidents')
+            ->has('topReporters')
+            ->has('criticalIncidents')
+        );
+    }
 }
