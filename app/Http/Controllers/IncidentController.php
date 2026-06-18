@@ -146,4 +146,22 @@ class IncidentController extends Controller
         $request->user()->unreadNotifications->markAsRead();
         return back();
     }
+
+    /**
+     * Export admin incidents to Excel.
+     */
+    public function adminExport(Request $request)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $filters = $request->only(['status', 'category', 'severity']);
+        $filename = 'laporan-insiden-' . now()->format('Y-m-d') . '.xlsx';
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\IncidentExport($filters), 
+            $filename
+        );
+    }
 }

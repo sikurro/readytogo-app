@@ -96,6 +96,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 
     // Admin Incident Management Routes
+    Route::get('incidents/export', [App\Http\Controllers\IncidentController::class, 'adminExport'])->name('incidents.export');
     Route::get('incidents', [App\Http\Controllers\IncidentController::class, 'adminIndex'])->name('incidents.index');
     Route::put('incidents/{incident}/status', [App\Http\Controllers\IncidentController::class, 'updateStatus'])->name('incidents.update-status');
 });
