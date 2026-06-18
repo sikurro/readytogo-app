@@ -66,4 +66,84 @@ class IncidentController extends Controller
 
         return redirect()->route('incidents.index')->with('success', 'Laporan insiden berhasil dikirim!');
     }
+
+    /**
+     * Display a listing of all incidents for the admin panel.
+     */
+    public function adminIndex(Request $request)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $query = Incident::with('user');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('severity')) {
+            $query->where('severity', $request->severity);
+        }
+
+        // All incidents for Leaflet markers
+        $allIncidents = (clone $query)->latest()->get();
+
+        // Paginated incidents for the table list
+        $incidents = $query->latest()->paginate(10)->withQueryString();
+
+        return Inertia::render('Admin/Incidents/Index', [
+            'incidents' => $incidents,
+            'allIncidents' => $allIncidents,
+            'filters' => $request->only(['status', 'category', 'severity']),
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error'),
+            ]
+        ]);
+    }
+
+    /**
+     * Update the status of the specified incident report.
+     */
+    public function updateStatus(Request $request, Incident $incident)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:open,investigating,closed',
+            'admin_feedback' => 'required_if:status,closed|nullable|string',
+        ]);
+
+        $updateData = [
+            'status' => $validated['status'],
+            'admin_feedback' => $validated['admin_feedback'] ?? null,
+        ];
+
+        if ($validated['status'] === 'closed') {
+            $updateData['resolved_at'] = now();
+            $updateData['resolved_by'] = $request->user()->id;
+        }
+
+        $incident->update($updateData);
+
+        if ($validated['status'] === 'closed') {
+            $incident->user->notify(new \App\Notifications\IncidentResolved($incident));
+        }
+
+        return redirect()->route('admin.incidents.index')->with('success', 'Status laporan berhasil diperbarui!');
+    }
+
+    /**
+     * Mark all unread notifications of the user as read.
+     */
+    public function markNotificationsAsRead(Request $request)
+    {
+        $request->user()->unreadNotifications->markAsRead();
+        return back();
+    }
 }
