@@ -224,7 +224,7 @@ const initializeMap = (L) => {
         centerLng = parseFloat(reportedWithCoords[0].longitude);
     }
 
-    map = L.map('leaflet-map').setView([centerLat, centerLng], 12);
+    map = L.map('leaflet-map').setView([centerLat, centerLng], 8);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -278,6 +278,9 @@ const updateMapMarkers = () => {
     if (reportedWithCoords.length > 0) {
         const bounds = L.latLngBounds(reportedWithCoords.map(i => [parseFloat(i.latitude), parseFloat(i.longitude)]));
         map.fitBounds(bounds, { padding: [30, 30] });
+        
+        // Memaksa zoom out 4 tingkat setelah bounds terbentuk agar titik-titik terlihat jauh/luas
+        map.zoomOut(4);
     }
 };
 
