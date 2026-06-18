@@ -339,6 +339,11 @@ class DashboardController extends Controller
         $investigatingIncidents = Incident::where('status', 'investigating')->count();
         $closedIncidents = Incident::where('status', 'closed')->count();
 
+        $latestIncidents = Incident::with('user')
+            ->latest()
+            ->take(5)
+            ->get();
+
         return response()->json([
             'fatigueToday' => [
                 'fit' => $fitToday,
@@ -372,6 +377,7 @@ class DashboardController extends Controller
                 'investigating' => $investigatingIncidents,
                 'closed' => $closedIncidents,
             ],
+            'latestIncidents' => $latestIncidents,
             'top10Leaderboard' => $top10Leaderboard
         ]);
     }

@@ -421,7 +421,7 @@ const fetchChartData = async () => {
             liveLeaderboard.value = data.top10Leaderboard;
         }
 
-        // Update Incidents Stats
+        // Update Incidents Stats and List
         if (data.incidentData) {
             incidentStats.value = data.incidentData;
             incidentPieSeries.value = [
@@ -429,6 +429,10 @@ const fetchChartData = async () => {
                 data.incidentData.investigating,
                 data.incidentData.closed
             ];
+        }
+
+        if (data.latestIncidents) {
+            liveIncidents.value = data.latestIncidents;
         }
 
         // Update Quiz 30-day Trend Line Chart
