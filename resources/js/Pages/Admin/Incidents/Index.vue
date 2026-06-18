@@ -69,6 +69,14 @@ const applyFilters = () => {
     });
 };
 
+const exportExcel = () => {
+    const url = new URL(route('admin.incidents.export'), window.location.origin);
+    if (filterStatus.value) url.searchParams.append('status', filterStatus.value);
+    if (filterCategory.value) url.searchParams.append('category', filterCategory.value);
+    if (filterSeverity.value) url.searchParams.append('severity', filterSeverity.value);
+    window.location.href = url.toString();
+};
+
 // Watch for local filter changes to automatically trigger filter
 watch([filterStatus, filterCategory, filterSeverity], () => {
     applyFilters();
@@ -376,6 +384,16 @@ watch(() => props.allIncidents, () => {
                             class="text-xs font-bold text-slate-450 hover:text-slate-200 border border-slate-800 hover:bg-slate-800 px-3.5 py-2 rounded-xl transition-all"
                         >
                             Reset Filter
+                        </button>
+
+                        <button 
+                            @click="exportExcel"
+                            class="text-xs font-bold text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/10 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Export Excel
                         </button>
                     </div>
                 </div>
