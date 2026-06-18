@@ -2,3 +2,4 @@
 Activation Mode: Always On
 
 - Selalu berikan respons, penjelasan, dan komentar kode dalam Bahasa Indonesia yang natural.
+- jika ada perintah terminal yang gagal dieksekusi, tampilkan perintah terminalnya pada chat, saya bantu eksekusi dan tunggu instruksi selanjutnya
