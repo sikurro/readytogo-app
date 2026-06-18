@@ -88,8 +88,8 @@ class IncidentController extends Controller
             $query->where('severity', $request->severity);
         }
 
-        // All incidents for Leaflet markers
-        $allIncidents = (clone $query)->latest()->get();
+        // All incidents for summary widget and global map markers (unfiltered)
+        $allIncidents = Incident::with('user')->latest()->get();
 
         // Paginated incidents for the table list
         $incidents = $query->latest()->paginate(10)->withQueryString();
