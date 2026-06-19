@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/incidents', [\App\Http\Controllers\IncidentController::class, 'index'])->name('incidents.index');
     Route::get('/incidents/create', [\App\Http\Controllers\IncidentController::class, 'create'])->name('incidents.create');
     Route::post('/incidents', [\App\Http\Controllers\IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/notifications/unread', [\App\Http\Controllers\IncidentController::class, 'getUnreadNotifications'])->name('notifications.unread');
     Route::post('/notifications/mark-as-read', [\App\Http\Controllers\IncidentController::class, 'markNotificationsAsRead'])->name('notifications.mark-as-read');
 });
 

@@ -2,16 +2,29 @@
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
-import { ref, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import axios from 'axios';
 
 const page = usePage();
-const incidentResolvedNotifications = computed(() => {
-    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentResolved') || [];
-});
+const incidentStatusNotifications = ref(
+    page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated') || []
+);
+
+const fetchNotifications = async () => {
+    try {
+        const response = await axios.get(route('notifications.unread'));
+        incidentStatusNotifications.value = response.data.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated');
+    } catch (error) {
+        console.error('Failed to fetch notifications', error);
+    }
+};
 
 const markNotificationsAsRead = () => {
     router.post(route('notifications.mark-as-read'), {}, {
-        preserveScroll: true
+        preserveScroll: true,
+        onSuccess: () => {
+            incidentStatusNotifications.value = [];
+        }
     });
 };
 
@@ -121,6 +134,16 @@ const getStatusClass = (status) => {
             return 'border border-slate-700 bg-slate-800 text-slate-400';
     }
 };
+
+let pollingInterval = null;
+
+onMounted(() => {
+    pollingInterval = setInterval(fetchNotifications, 10000); // Polling setiap 10 detik via API ringan
+});
+
+onUnmounted(() => {
+    if (pollingInterval) clearInterval(pollingInterval);
+});
 </script>
 
 <template>
@@ -129,10 +152,10 @@ const getStatusClass = (status) => {
     <MobileAppLayout>
         <div class="py-4 space-y-6">
             <!-- Notification Banners -->
-            <div v-if="incidentResolvedNotifications.length > 0" class="space-y-3">
-                <div v-for="notif in incidentResolvedNotifications" :key="notif.id" class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex justify-between items-start gap-3 animate-fadeIn">
+            <div v-if="incidentStatusNotifications.length > 0" class="space-y-3">
+                <div v-for="notif in incidentStatusNotifications" :key="notif.id" class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex justify-between items-start gap-3 animate-fadeIn">
                     <div class="space-y-1">
-                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">Update Penanganan Laporan</span>
+                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{{ notif.data.title }}</span>
                         <p class="text-xs text-slate-200 leading-relaxed font-bold">{{ notif.data.message }}</p>
                         <p class="text-[10px] text-slate-400 leading-relaxed italic" v-if="notif.data.admin_feedback">Catatan Admin: "{{ notif.data.admin_feedback }}"</p>
                     </div>
