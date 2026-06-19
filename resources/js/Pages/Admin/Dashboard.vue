@@ -5,6 +5,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import apexchart from 'vue3-apexcharts';
 import Modal from '@/Components/Modal.vue';
+import IncidentDetailModal from '@/Components/IncidentDetailModal.vue';
 
 const props = defineProps({
     stats: Object,
@@ -360,6 +361,46 @@ const openFatigueModal = async (status, title) => {
     } finally {
         isFatigueModalLoading.value = false;
     }
+};
+
+// Modal States for Incidents
+const showIncidentListModal = ref(false);
+const isIncidentListLoading = ref(false);
+const incidentListData = ref([]);
+const incidentListTitle = ref('');
+
+const openIncidentListModal = async (status, title) => {
+    showIncidentListModal.value = true;
+    isIncidentListLoading.value = true;
+    incidentListTitle.value = title;
+    incidentListData.value = [];
+
+    try {
+        const response = await axios.get(`/admin/dashboard/incident-details?status=${status}`);
+        incidentListData.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch incident details:', error);
+    } finally {
+        isIncidentListLoading.value = false;
+    }
+};
+
+const showIncidentDetail = ref(false);
+const selectedIncident = ref(null);
+
+const openIncidentDetail = (incident) => {
+    selectedIncident.value = incident;
+    showIncidentDetail.value = true;
+};
+
+const handleIncidentClickFromList = (incident) => {
+    showIncidentListModal.value = false;
+    openIncidentDetail(incident);
+};
+
+const handleIncidentUpdated = () => {
+    showIncidentDetail.value = false;
+    fetchChartData(); // Refresh dashboard data after update
 };
 
 let pollingInterval = null;
@@ -801,19 +842,19 @@ onUnmounted(() => {
 
                 <!-- Stats Grid Incidents -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-amber-500 transition-all duration-300 relative">
+                    <div @click="openIncidentListModal('all', 'Total Laporan Insiden')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-amber-500 transition-all duration-300 relative">
                         <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider group-hover:text-amber-300 transition-colors">Total Insiden</span>
                         <span class="text-2xl font-extrabold text-amber-400 mt-2">{{ incidentStats.total }}</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-rose-500 transition-all duration-300 relative">
+                    <div @click="openIncidentListModal('open', 'Laporan Insiden Terbuka')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-rose-500 transition-all duration-300 relative">
                         <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider group-hover:text-rose-400 transition-colors">Terbuka (Open)</span>
                         <span class="text-2xl font-extrabold text-rose-500 mt-2">{{ incidentStats.open }}</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-blue-500 transition-all duration-300 relative">
+                    <div @click="openIncidentListModal('investigating', 'Laporan Insiden Ditindak Lanjuti')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-blue-500 transition-all duration-300 relative">
                         <span class="text-[10px] text-blue-400 font-bold uppercase tracking-wider group-hover:text-blue-300 transition-colors">Ditindak Lanjuti</span>
                         <span class="text-2xl font-extrabold text-blue-400 mt-2">{{ incidentStats.investigating }}</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg group hover:-translate-y-1 hover:shadow-xl hover:border-emerald-500 transition-all duration-300 relative">
+                    <div @click="openIncidentListModal('closed', 'Laporan Insiden Selesai')" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-lg cursor-pointer group hover:-translate-y-1 hover:shadow-xl hover:border-emerald-500 transition-all duration-300 relative">
                         <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider group-hover:text-emerald-300 transition-colors">Selesai (Closed)</span>
                         <span class="text-2xl font-extrabold text-emerald-400 mt-2">{{ incidentStats.closed }}</span>
                     </div>
@@ -896,7 +937,7 @@ onUnmounted(() => {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800">
-                                    <tr v-for="incident in liveIncidents" :key="incident.id" class="border-b border-slate-800/50 hover:bg-slate-800/30">
+                                    <tr v-for="incident in liveIncidents" :key="incident.id" @click="openIncidentDetail(incident)" class="border-b border-slate-800/50 hover:bg-slate-800/30 cursor-pointer transition-colors">
                                         <td class="px-3 py-3">
                                             <div class="font-bold text-slate-200 text-xs">{{ incident.user?.name || 'Petugas' }}</div>
                                             <div class="text-[10px] text-slate-500">{{ new Date(incident.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) }}</div>
@@ -985,5 +1026,76 @@ onUnmounted(() => {
                 </div>
             </div>
         </Modal>
+
+        <!-- Incident List Modal -->
+        <Modal :show="showIncidentListModal" @close="showIncidentListModal = false" maxWidth="3xl">
+            <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-slate-100">{{ incidentListTitle }}</h3>
+                    <button @click="showIncidentListModal = false" class="text-slate-400 hover:text-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div v-if="isIncidentListLoading" class="flex flex-col items-center justify-center py-12">
+                        <svg class="animate-spin h-8 w-8 text-amber-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm text-slate-400">Memuat data insiden...</span>
+                    </div>
+                    <div v-else>
+                        <div v-if="incidentListData.length === 0" class="text-center py-8 text-slate-500">
+                            Tidak ada data laporan untuk kategori ini.
+                        </div>
+                        <div v-else class="max-h-[60vh] overflow-y-auto pr-2">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 rounded-tl-lg">Pelapor / Waktu</th>
+                                        <th scope="col" class="px-4 py-3">Kategori & Deskripsi</th>
+                                        <th scope="col" class="px-4 py-3 text-center rounded-tr-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="incident in incidentListData" :key="incident.id" @click="handleIncidentClickFromList(incident)" class="border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer">
+                                        <td class="px-4 py-3">
+                                            <div class="font-bold text-slate-200">{{ incident.user?.name || 'Petugas' }}</div>
+                                            <div class="text-[10px] text-slate-500">{{ new Date(incident.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) }}</div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-800 text-slate-300 border border-slate-700 capitalize">{{ incident.category }}</span>
+                                            <div class="text-xs text-slate-400 mt-1 line-clamp-1 max-w-[300px]" :title="incident.description">
+                                                {{ incident.description }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="px-2.5 py-1 text-[10px] uppercase font-bold rounded-full"
+                                                :class="{
+                                                    'bg-rose-500/20 text-rose-500': incident.status === 'open',
+                                                    'bg-blue-500/20 text-blue-400': incident.status === 'investigating',
+                                                    'bg-emerald-500/20 text-emerald-400': incident.status === 'closed'
+                                                }">
+                                                {{ incident.status === 'open' ? 'Terbuka' : (incident.status === 'investigating' ? 'Proses' : 'Selesai') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+
+        <!-- Incident Detail Modal -->
+        <IncidentDetailModal 
+            :is-open="showIncidentDetail"
+            :incident="selectedIncident"
+            @close="showIncidentDetail = false"
+            @updated="handleIncidentUpdated"
+        />
     </AdminDashboardLayout>
 </template>

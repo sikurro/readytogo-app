@@ -32,6 +32,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['au
 Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->middleware(['auth', 'verified'])->name('admin.dashboard');
 Route::get('/admin/dashboard/chart-data', [DashboardController::class, 'chartData'])->middleware(['auth', 'verified'])->name('admin.dashboard.chart-data');
 Route::get('/admin/dashboard/fatigue-details', [DashboardController::class, 'fatigueDetails'])->middleware(['auth', 'verified'])->name('admin.dashboard.fatigue-details');
+Route::get('/admin/dashboard/incident-details', [DashboardController::class, 'incidentDetails'])->middleware(['auth', 'verified'])->name('admin.dashboard.incident-details');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
