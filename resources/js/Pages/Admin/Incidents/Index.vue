@@ -8,7 +8,8 @@ import axios from 'axios';
 
 const props = defineProps({
     incidents: Object,
-    allIncidents: Array,
+    summaryStats: Object,
+    mapIncidents: Array,
     filters: Object,
 });
 
@@ -205,10 +206,9 @@ const initializeMap = (L) => {
     let centerLng = 106.878;
 
     // Center to the latest reported incident with coordinates if available
-    const reportedWithCoords = props.allIncidents.filter(i => i.latitude && i.longitude);
-    if (reportedWithCoords.length > 0) {
-        centerLat = parseFloat(reportedWithCoords[0].latitude);
-        centerLng = parseFloat(reportedWithCoords[0].longitude);
+    if (props.mapIncidents && props.mapIncidents.length > 0) {
+        centerLat = parseFloat(props.mapIncidents[0].latitude);
+        centerLng = parseFloat(props.mapIncidents[0].longitude);
     }
 
     map = L.map('leaflet-map').setView([centerLat, centerLng], 8);
@@ -230,7 +230,7 @@ const updateMapMarkers = () => {
     markersGroup.clearLayers();
     const L = window.L;
 
-    const reportedWithCoords = props.allIncidents.filter(i => i.latitude && i.longitude);
+    const reportedWithCoords = props.mapIncidents || [];
     
     reportedWithCoords.forEach((incident) => {
         // Colored icons based on severity
@@ -274,7 +274,7 @@ const updateMapMarkers = () => {
 // Global helper so popup button can trigger modal
 onMounted(() => {
     window.openIncidentModal = (id) => {
-        const incident = props.allIncidents.find(i => i.id === id);
+        const incident = props.mapIncidents.find(i => i.id === id);
         if (incident) openModal(incident);
     };
 
@@ -283,8 +283,8 @@ onMounted(() => {
     });
 });
 
-// Watch for changes in allIncidents props to update markers dynamically
-watch(() => props.allIncidents, () => {
+// Watch for changes in mapIncidents props to update markers dynamically
+watch(() => props.mapIncidents, () => {
     updateMapMarkers();
 }, { deep: true });
 </script>
@@ -312,7 +312,7 @@ watch(() => props.allIncidents, () => {
                         </div>
                         <div>
                             <span class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider">Total Laporan</span>
-                            <span class="text-xl font-black text-slate-100">{{ allIncidents.length }}</span>
+                            <span class="text-xl font-black text-slate-100">{{ summaryStats?.total || 0 }}</span>
                         </div>
                     </div>
 
@@ -325,7 +325,7 @@ watch(() => props.allIncidents, () => {
                         </div>
                         <div>
                             <span class="block text-[10px] font-bold text-slate-455 uppercase tracking-wider text-blue-400">Laporan Terbuka</span>
-                            <span class="text-xl font-black text-blue-400">{{ allIncidents.filter(i => i.status === 'open').length }}</span>
+                            <span class="text-xl font-black text-blue-400">{{ summaryStats?.open || 0 }}</span>
                         </div>
                     </div>
 
@@ -338,7 +338,7 @@ watch(() => props.allIncidents, () => {
                         </div>
                         <div>
                             <span class="block text-[10px] font-bold text-slate-455 uppercase tracking-wider text-amber-400">Dalam Investigasi</span>
-                            <span class="text-xl font-black text-amber-400">{{ allIncidents.filter(i => i.status === 'investigating').length }}</span>
+                            <span class="text-xl font-black text-amber-400">{{ summaryStats?.investigating || 0 }}</span>
                         </div>
                     </div>
 
@@ -351,7 +351,7 @@ watch(() => props.allIncidents, () => {
                         </div>
                         <div>
                             <span class="block text-[10px] font-bold text-slate-455 uppercase tracking-wider text-emerald-400">Selesai (Closed)</span>
-                            <span class="text-xl font-black text-emerald-400">{{ allIncidents.filter(i => i.status === 'closed').length }}</span>
+                            <span class="text-xl font-black text-emerald-400">{{ summaryStats?.closed || 0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -360,7 +360,7 @@ watch(() => props.allIncidents, () => {
                 <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
                     <div class="p-3 border-b border-slate-800/60 bg-slate-800/30 flex justify-between items-center">
                         <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">Peta Sebaran Insiden (Map View)</h3>
-                        <span class="text-[10px] text-slate-450 font-bold">Menampilkan {{ allIncidents.filter(i => i.latitude && i.longitude).length }} Laporan Ber-GPS</span>
+                        <span class="text-[10px] text-slate-450 font-bold">Menampilkan {{ mapIncidents?.length || 0 }} Laporan Ber-GPS</span>
                     </div>
                     <!-- Leaflet container -->
                     <div id="leaflet-map" class="h-96 w-full bg-slate-950 z-10 flex-1"></div>

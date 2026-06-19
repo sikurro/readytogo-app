@@ -93,15 +93,30 @@ class IncidentController extends Controller
             $query->where('severity', $request->severity);
         }
 
-        // All incidents for summary widget and global map markers (unfiltered)
-        $allIncidents = Incident::with('user')->latest()->get();
+        // Summary stats (aggregate, bukan load seluruh data)
+        $summaryStats = [
+            'total' => Incident::count(),
+            'open' => Incident::where('status', 'open')->count(),
+            'investigating' => Incident::where('status', 'investigating')->count(),
+            'closed' => Incident::where('status', 'closed')->count(),
+        ];
+
+        // Map markers: hanya field yg dibutuhkan + hanya yang punya koordinat
+        $mapIncidents = Incident::select('id', 'category', 'severity', 'status', 'latitude', 'longitude', 'created_at', 'user_id')
+            ->with('user:id,name')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->latest()
+            ->limit(200)
+            ->get();
 
         // Paginated incidents for the table list
         $incidents = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Incidents/Index', [
             'incidents' => $incidents,
-            'allIncidents' => $allIncidents,
+            'summaryStats' => $summaryStats,
+            'mapIncidents' => $mapIncidents,
             'filters' => $request->only(['status', 'category', 'severity']),
             'flash' => [
                 'success' => session('success'),
@@ -184,23 +199,34 @@ class IncidentController extends Controller
         $positiveObservations = Incident::where('category', 'positive_observation')->count();
 
         // 6 Months Trend
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $startMonth = now()->subMonths(5)->startOfMonth();
+
+        $trendRaw = Incident::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as count")
+            ->where('created_at', '>=', $startMonth)
+            ->groupBy('month_key')
+            ->orderBy('month_key')
+            ->pluck('count', 'month_key');
+
         $trendLabels = [];
         $trendCounts = [];
-        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $trendLabels[] = $monthNames[$month->month - 1] . ' ' . $month->year;
-            $trendCounts[] = Incident::whereMonth('created_at', $month->month)
-                ->whereYear('created_at', $month->year)
-                ->count();
+            $m = now()->subMonths($i);
+            $key = $m->format('Y-m');
+            $trendLabels[] = $monthNames[$m->month - 1] . ' ' . $m->year;
+            $trendCounts[] = $trendRaw->get($key, 0);
         }
 
         // Composition
+        $compositionRaw = Incident::selectRaw("category, COUNT(*) as count")
+            ->groupBy('category')
+            ->pluck('count', 'category');
+
         $composition = [
-            'unsafe_condition' => Incident::where('category', 'unsafe_condition')->count(),
-            'unsafe_act' => Incident::where('category', 'unsafe_act')->count(),
-            'near_miss' => Incident::where('category', 'near_miss')->count(),
-            'positive_observation' => Incident::where('category', 'positive_observation')->count(),
+            'unsafe_condition' => $compositionRaw->get('unsafe_condition', 0),
+            'unsafe_act' => $compositionRaw->get('unsafe_act', 0),
+            'near_miss' => $compositionRaw->get('near_miss', 0),
+            'positive_observation' => $compositionRaw->get('positive_observation', 0),
         ];
 
         // Map Incidents

@@ -2,6 +2,17 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Petugas\QuizController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FatigueCheckController;
+use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\QuizController as AdminQuizController;
+use App\Http\Controllers\Admin\QuestionController;
+use App\Http\Controllers\Admin\FatigueQuestionController;
+use App\Http\Controllers\Admin\FatigueCheckController as AdminFatigueCheckController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\LeaderboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,8 +37,6 @@ Route::get('/', function () {
     ]);
 });
 
-use App\Http\Controllers\DashboardController;
-
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->middleware(['auth', 'verified'])->name('admin.dashboard');
 Route::get('/admin/dashboard/chart-data', [DashboardController::class, 'chartData'])->middleware(['auth', 'verified'])->name('admin.dashboard.chart-data');
@@ -49,59 +58,58 @@ Route::middleware('auth')->group(function () {
     Route::get('/quiz/history', [QuizController::class, 'history'])->name('quiz.history');
 
     // Fatigue Check Routes
-    Route::get('/fatigue/hub', [\App\Http\Controllers\FatigueCheckController::class, 'hub'])->name('fatigue.hub');
-    Route::get('/fatigue/questionnaire', [\App\Http\Controllers\FatigueCheckController::class, 'index'])->name('fatigue.questionnaire');
-    Route::post('/fatigue/questionnaire', [\App\Http\Controllers\FatigueCheckController::class, 'processQuestionnaire'])->name('fatigue.questionnaire.process');
-    Route::get('/fatigue/reaction-test', [\App\Http\Controllers\FatigueCheckController::class, 'test'])->name('fatigue.test');
-    Route::post('/fatigue/store', [\App\Http\Controllers\FatigueCheckController::class, 'store'])->name('fatigue.store');
-    Route::get('/fatigue/result', [\App\Http\Controllers\FatigueCheckController::class, 'result'])->name('fatigue.result');
-    Route::get('/fatigue/history', [\App\Http\Controllers\FatigueCheckController::class, 'history'])->name('fatigue.history');
+    Route::get('/fatigue/hub', [FatigueCheckController::class, 'hub'])->name('fatigue.hub');
+    Route::get('/fatigue/questionnaire', [FatigueCheckController::class, 'index'])->name('fatigue.questionnaire');
+    Route::post('/fatigue/questionnaire', [FatigueCheckController::class, 'processQuestionnaire'])->name('fatigue.questionnaire.process');
+    Route::get('/fatigue/reaction-test', [FatigueCheckController::class, 'test'])->name('fatigue.test');
+    Route::post('/fatigue/store', [FatigueCheckController::class, 'store'])->name('fatigue.store');
+    Route::get('/fatigue/result', [FatigueCheckController::class, 'result'])->name('fatigue.result');
+    Route::get('/fatigue/history', [FatigueCheckController::class, 'history'])->name('fatigue.history');
 
     // Incident Routes
-    Route::get('/incidents', [\App\Http\Controllers\IncidentController::class, 'index'])->name('incidents.index');
-    Route::get('/incidents/create', [\App\Http\Controllers\IncidentController::class, 'create'])->name('incidents.create');
-    Route::post('/incidents', [\App\Http\Controllers\IncidentController::class, 'store'])->name('incidents.store');
-    Route::get('/notifications/unread', [\App\Http\Controllers\IncidentController::class, 'getUnreadNotifications'])->name('notifications.unread');
-    Route::post('/notifications/mark-as-read', [\App\Http\Controllers\IncidentController::class, 'markNotificationsAsRead'])->name('notifications.mark-as-read');
+    Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/notifications/unread', [IncidentController::class, 'getUnreadNotifications'])->name('notifications.unread');
+    Route::post('/notifications/mark-as-read', [IncidentController::class, 'markNotificationsAsRead'])->name('notifications.mark-as-read');
 });
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/quiz/history', [App\Http\Controllers\Admin\QuizController::class, 'history'])->name('quiz.history');
-    Route::get('/quiz/history/export', [App\Http\Controllers\Admin\QuizController::class, 'exportHistory'])->name('quiz.history.export');
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/quiz/history', [AdminQuizController::class, 'history'])->name('quiz.history');
+    Route::get('/quiz/history/export', [AdminQuizController::class, 'exportHistory'])->name('quiz.history.export');
 
-    Route::get('/leaderboard/daily', [App\Http\Controllers\Admin\LeaderboardController::class, 'dailyIndex'])->name('leaderboard.daily');
-    Route::get('/leaderboard/daily/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportDaily'])->name('leaderboard.daily.export');
-    Route::get('/leaderboard/daily/pdf', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportDailyPdf'])->name('leaderboard.daily.pdf');
-    Route::get('/leaderboard/event', [App\Http\Controllers\Admin\LeaderboardController::class, 'eventIndex'])->name('leaderboard.event');
-    Route::get('/leaderboard/event/export', [App\Http\Controllers\Admin\LeaderboardController::class, 'exportEvent'])->name('leaderboard.event.export');
+    Route::get('/leaderboard/daily', [LeaderboardController::class, 'dailyIndex'])->name('leaderboard.daily');
+    Route::get('/leaderboard/daily/export', [LeaderboardController::class, 'exportDaily'])->name('leaderboard.daily.export');
+    Route::get('/leaderboard/daily/pdf', [LeaderboardController::class, 'exportDailyPdf'])->name('leaderboard.daily.pdf');
+    Route::get('/leaderboard/event', [LeaderboardController::class, 'eventIndex'])->name('leaderboard.event');
+    Route::get('/leaderboard/event/export', [LeaderboardController::class, 'exportEvent'])->name('leaderboard.event.export');
 
-
-    Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
-    Route::resource('locations', App\Http\Controllers\Admin\LocationController::class);
-    Route::resource('quizzes', App\Http\Controllers\Admin\QuizController::class);
-    Route::post('quizzes/{quiz}/attach-question', [App\Http\Controllers\Admin\QuizController::class, 'attachQuestion'])->name('quizzes.attach_question');
-    Route::post('quizzes/{quiz}/detach-question', [App\Http\Controllers\Admin\QuizController::class, 'detachQuestion'])->name('quizzes.detach_question');
+    Route::resource('categories', CategoryController::class);
+    Route::resource('locations', LocationController::class);
+    Route::resource('quizzes', AdminQuizController::class);
+    Route::post('quizzes/{quiz}/attach-question', [AdminQuizController::class, 'attachQuestion'])->name('quizzes.attach_question');
+    Route::post('quizzes/{quiz}/detach-question', [AdminQuizController::class, 'detachQuestion'])->name('quizzes.detach_question');
     
-    Route::get('questions/template', [App\Http\Controllers\Admin\QuestionController::class, 'downloadTemplate'])->name('questions.template');
-    Route::get('questions/export', [App\Http\Controllers\Admin\QuestionController::class, 'export'])->name('questions.export');
-    Route::post('questions/import', [App\Http\Controllers\Admin\QuestionController::class, 'import'])->name('questions.import');
-    Route::resource('questions', App\Http\Controllers\Admin\QuestionController::class);
+    Route::get('questions/template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
+    Route::get('questions/export', [QuestionController::class, 'export'])->name('questions.export');
+    Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
+    Route::resource('questions', QuestionController::class);
 
-    Route::resource('fatigue-questions', App\Http\Controllers\Admin\FatigueQuestionController::class);
-    Route::get('fatigue-checks/export', [App\Http\Controllers\Admin\FatigueCheckController::class, 'export'])->name('fatigue-checks.export');
-    Route::get('fatigue-checks', [App\Http\Controllers\Admin\FatigueCheckController::class, 'index'])->name('fatigue-checks.index');
+    Route::resource('fatigue-questions', FatigueQuestionController::class);
+    Route::get('fatigue-checks/export', [AdminFatigueCheckController::class, 'export'])->name('fatigue-checks.export');
+    Route::get('fatigue-checks', [AdminFatigueCheckController::class, 'index'])->name('fatigue-checks.index');
 
-    Route::get('users/template', [App\Http\Controllers\Admin\UserController::class, 'downloadTemplate'])->name('users.template');
-    Route::get('users/export', [App\Http\Controllers\Admin\UserController::class, 'export'])->name('users.export');
-    Route::post('users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
-    Route::post('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
-    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::get('users/template', [UserController::class, 'downloadTemplate'])->name('users.template');
+    Route::get('users/export', [UserController::class, 'export'])->name('users.export');
+    Route::post('users/import', [UserController::class, 'import'])->name('users.import');
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::resource('users', UserController::class);
 
     // Admin Incident Management Routes
-    Route::get('incidents/dashboard', [App\Http\Controllers\IncidentController::class, 'dashboard'])->name('incidents.dashboard');
-    Route::get('incidents/export', [App\Http\Controllers\IncidentController::class, 'adminExport'])->name('incidents.export');
-    Route::get('incidents', [App\Http\Controllers\IncidentController::class, 'adminIndex'])->name('incidents.index');
-    Route::put('incidents/{incident}/status', [App\Http\Controllers\IncidentController::class, 'updateStatus'])->name('incidents.update-status');
+    Route::get('incidents/dashboard', [IncidentController::class, 'dashboard'])->name('incidents.dashboard');
+    Route::get('incidents/export', [IncidentController::class, 'adminExport'])->name('incidents.export');
+    Route::get('incidents', [IncidentController::class, 'adminIndex'])->name('incidents.index');
+    Route::put('incidents/{incident}/status', [IncidentController::class, 'updateStatus'])->name('incidents.update-status');
 });
 
 require __DIR__.'/auth.php';

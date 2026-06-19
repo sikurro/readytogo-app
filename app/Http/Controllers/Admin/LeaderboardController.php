@@ -136,10 +136,6 @@ class LeaderboardController extends Controller
 
     public function dailyIndex(Request $request)
     {
-        if (!$request->user()->isAdmin()) {
-            abort(403);
-        }
-
         $month = $request->filled('month') ? $request->input('month') : date('Y-m');
 
         $fullLeaderboard = $this->getDailyLeaderboardData($month);
@@ -234,10 +230,6 @@ class LeaderboardController extends Controller
 
     public function eventIndex(Request $request)
     {
-        if (!$request->user()->isAdmin()) {
-            abort(403);
-        }
-
         // Get list of event quizzes
         $eventQuizzes = Quiz::where('is_daily_quiz', 0)->orderBy('created_at', 'desc')->get();
         
@@ -327,8 +319,6 @@ class LeaderboardController extends Controller
 
     public function exportDaily(Request $request)
     {
-        if (!$request->user()->isAdmin()) abort(403);
-
         $month = $request->filled('month') ? $request->input('month') : date('Y-m');
         $fullLeaderboard = $this->getDailyLeaderboardData($month);
         $filteredLeaderboard = $this->applyFilters($request, $fullLeaderboard);
@@ -339,8 +329,6 @@ class LeaderboardController extends Controller
 
     public function exportDailyPdf(Request $request)
     {
-        if (!$request->user()->isAdmin()) abort(403);
-
         $month = $request->filled('month') ? $request->input('month') : date('Y-m');
         $fullLeaderboard = $this->getDailyLeaderboardData($month);
         $filteredLeaderboard = $this->applyFilters($request, $fullLeaderboard);
@@ -424,8 +412,6 @@ class LeaderboardController extends Controller
 
     public function exportEvent(Request $request)
     {
-        if (!$request->user()->isAdmin()) abort(403);
-
         $eventId = $request->input('event_id');
         $fullLeaderboard = $this->getEventLeaderboardData($eventId);
         $filteredLeaderboard = $this->applyFilters($request, $fullLeaderboard);
