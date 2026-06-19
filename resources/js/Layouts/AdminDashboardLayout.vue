@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import Toast from '@/Components/Toast.vue';
 
 defineProps({
@@ -8,6 +8,19 @@ defineProps({
 });
 
 const isSidebarOpen = ref(true);
+const page = usePage();
+const showNotifications = ref(false);
+
+const adminNotifications = computed(() => {
+    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\NewIncidentReported') || [];
+});
+
+const markAdminNotificationsAsRead = () => {
+    router.post(route('notifications.mark-as-read'), {}, {
+        preserveScroll: true,
+        onSuccess: () => { showNotifications.value = false; }
+    });
+};
 
 const logout = () => {
     router.post(route('logout'));
@@ -171,6 +184,35 @@ const logout = () => {
                 </h2>
                 
                 <div class="flex items-center gap-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button @click="showNotifications = !showNotifications" class="relative p-2 text-slate-400 hover:text-slate-100 transition-colors rounded-full hover:bg-slate-800 focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                            </svg>
+                            <span v-if="adminNotifications.length > 0" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
+                        </button>
+
+                        <!-- Dropdown -->
+                        <div v-if="showNotifications" class="absolute right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                                <h3 class="text-sm font-bold text-slate-100">Notifikasi</h3>
+                                <button v-if="adminNotifications.length > 0" @click="markAdminNotificationsAsRead" class="text-xs font-medium text-amber-500 hover:text-amber-400">Tandai sudah dibaca</button>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                <div v-if="adminNotifications.length === 0" class="px-4 py-6 text-center text-slate-400 text-sm">
+                                    Tidak ada notifikasi baru
+                                </div>
+                                <div v-else class="divide-y divide-slate-700/50">
+                                    <Link v-for="notif in adminNotifications" :key="notif.id" :href="route('admin.incidents.index')" class="block px-4 py-3 hover:bg-slate-700/50 transition-colors">
+                                        <p class="text-sm font-medium text-slate-200">{{ notif.data.title }}</p>
+                                        <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">{{ notif.data.message }}</p>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <span class="text-xs text-slate-400">Status Database: <span class="text-emerald-400 font-semibold">Online</span></span>
                 </div>
             </header>

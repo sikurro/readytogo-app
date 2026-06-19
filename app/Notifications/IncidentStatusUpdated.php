@@ -7,18 +7,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class IncidentResolved extends Notification
+class IncidentStatusUpdated extends Notification
 {
     use Queueable;
 
     protected $incident;
+    protected $newStatus;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($incident)
+    public function __construct($incident, $newStatus)
     {
         $this->incident = $incident;
+        $this->newStatus = $newStatus;
     }
 
     /**
@@ -47,12 +49,23 @@ class IncidentResolved extends Notification
 
         $label = $categoryLabels[$this->incident->category] ?? $this->incident->category;
 
+        $title = 'Status Laporan Diperbarui';
+        $message = "Laporan Anda terkait {$label} telah mengalami perubahan status.";
+
+        if ($this->newStatus === 'investigating') {
+            $message = "Laporan Anda terkait {$label} saat ini sedang diinvestigasi.";
+        } elseif ($this->newStatus === 'closed') {
+            $title = 'Laporan Insiden Diselesaikan';
+            $message = "Terima kasih, laporan terkait {$label} telah selesai ditindaklanjuti.";
+        }
+
         return [
             'incident_id' => $this->incident->id,
             'category' => $this->incident->category,
             'admin_feedback' => $this->incident->admin_feedback,
-            'title' => 'Laporan Insiden Diselesaikan',
-            'message' => "Terima kasih, laporan terkait {$label} telah ditindaklanjuti.",
+            'new_status' => $this->newStatus,
+            'title' => $title,
+            'message' => $message,
         ];
     }
 }

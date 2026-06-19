@@ -54,7 +54,7 @@ class IncidentController extends Controller
             $imagePath = $request->file('image')->store('incidents', 'public');
         }
 
-        $request->user()->incidents()->create([
+        $incident = $request->user()->incidents()->create([
             'category' => $validated['category'],
             'severity' => $validated['severity'],
             'description' => $validated['description'],
@@ -63,6 +63,11 @@ class IncidentController extends Controller
             'image_path' => $imagePath,
             'status' => 'open',
         ]);
+
+        $admins = \App\Models\User::whereHas('role', function($q) {
+            $q->where('name', 'Admin');
+        })->get();
+        \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewIncidentReported($incident));
 
         return redirect()->route('incidents.index')->with('success', 'Laporan insiden berhasil dikirim!');
     }
@@ -131,8 +136,8 @@ class IncidentController extends Controller
 
         $incident->update($updateData);
 
-        if ($validated['status'] === 'closed') {
-            $incident->user->notify(new \App\Notifications\IncidentResolved($incident));
+        if (in_array($validated['status'], ['investigating', 'closed'])) {
+            $incident->user->notify(new \App\Notifications\IncidentStatusUpdated($incident, $validated['status']));
         }
 
         return redirect()->route('admin.incidents.index')->with('success', 'Status laporan berhasil diperbarui!');

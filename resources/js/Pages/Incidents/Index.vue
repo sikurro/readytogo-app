@@ -5,8 +5,8 @@ import Pagination from '@/Components/Pagination.vue';
 import { ref, computed } from 'vue';
 
 const page = usePage();
-const incidentResolvedNotifications = computed(() => {
-    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentResolved') || [];
+const incidentStatusNotifications = computed(() => {
+    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated') || [];
 });
 
 const markNotificationsAsRead = () => {
@@ -129,10 +129,10 @@ const getStatusClass = (status) => {
     <MobileAppLayout>
         <div class="py-4 space-y-6">
             <!-- Notification Banners -->
-            <div v-if="incidentResolvedNotifications.length > 0" class="space-y-3">
-                <div v-for="notif in incidentResolvedNotifications" :key="notif.id" class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex justify-between items-start gap-3 animate-fadeIn">
+            <div v-if="incidentStatusNotifications.length > 0" class="space-y-3">
+                <div v-for="notif in incidentStatusNotifications" :key="notif.id" class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex justify-between items-start gap-3 animate-fadeIn">
                     <div class="space-y-1">
-                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">Update Penanganan Laporan</span>
+                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{{ notif.data.title }}</span>
                         <p class="text-xs text-slate-200 leading-relaxed font-bold">{{ notif.data.message }}</p>
                         <p class="text-[10px] text-slate-400 leading-relaxed italic" v-if="notif.data.admin_feedback">Catatan Admin: "{{ notif.data.admin_feedback }}"</p>
                     </div>
