@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Toast from '@/Components/Toast.vue';
 
@@ -25,6 +25,22 @@ const markAdminNotificationsAsRead = () => {
 const logout = () => {
     router.post(route('logout'));
 };
+
+let pollingInterval = null;
+
+onMounted(() => {
+    pollingInterval = setInterval(() => {
+        router.reload({ 
+            only: ['auth'], 
+            preserveState: true, 
+            preserveScroll: true 
+        });
+    }, 10000); // Polling setiap 10 detik
+});
+
+onUnmounted(() => {
+    if (pollingInterval) clearInterval(pollingInterval);
+});
 </script>
 
 <template>

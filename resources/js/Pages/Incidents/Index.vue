@@ -2,7 +2,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const page = usePage();
 const incidentStatusNotifications = computed(() => {
@@ -121,6 +121,22 @@ const getStatusClass = (status) => {
             return 'border border-slate-700 bg-slate-800 text-slate-400';
     }
 };
+
+let pollingInterval = null;
+
+onMounted(() => {
+    pollingInterval = setInterval(() => {
+        router.reload({ 
+            only: ['auth'], 
+            preserveState: true, 
+            preserveScroll: true 
+        });
+    }, 10000); // Polling setiap 10 detik
+});
+
+onUnmounted(() => {
+    if (pollingInterval) clearInterval(pollingInterval);
+});
 </script>
 
 <template>
