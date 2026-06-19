@@ -2,16 +2,29 @@
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import MobileAppLayout from '@/Layouts/MobileAppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import axios from 'axios';
 
 const page = usePage();
-const incidentStatusNotifications = computed(() => {
-    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated') || [];
-});
+const incidentStatusNotifications = ref(
+    page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated') || []
+);
+
+const fetchNotifications = async () => {
+    try {
+        const response = await axios.get(route('notifications.unread'));
+        incidentStatusNotifications.value = response.data.filter(n => n.type === 'App\\Notifications\\IncidentStatusUpdated');
+    } catch (error) {
+        console.error('Failed to fetch notifications', error);
+    }
+};
 
 const markNotificationsAsRead = () => {
     router.post(route('notifications.mark-as-read'), {}, {
-        preserveScroll: true
+        preserveScroll: true,
+        onSuccess: () => {
+            incidentStatusNotifications.value = [];
+        }
     });
 };
 
@@ -125,13 +138,7 @@ const getStatusClass = (status) => {
 let pollingInterval = null;
 
 onMounted(() => {
-    pollingInterval = setInterval(() => {
-        router.reload({ 
-            only: ['auth'], 
-            preserveState: true, 
-            preserveScroll: true 
-        });
-    }, 10000); // Polling setiap 10 detik
+    pollingInterval = setInterval(fetchNotifications, 10000); // Polling setiap 10 detik via API ringan
 });
 
 onUnmounted(() => {

@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Toast from '@/Components/Toast.vue';
+import axios from 'axios';
 
 defineProps({
     title: String,
@@ -11,14 +12,26 @@ const isSidebarOpen = ref(true);
 const page = usePage();
 const showNotifications = ref(false);
 
-const adminNotifications = computed(() => {
-    return page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\NewIncidentReported') || [];
-});
+const adminNotifications = ref(
+    page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\NewIncidentReported') || []
+);
+
+const fetchNotifications = async () => {
+    try {
+        const response = await axios.get(route('notifications.unread'));
+        adminNotifications.value = response.data.filter(n => n.type === 'App\\Notifications\\NewIncidentReported');
+    } catch (error) {
+        console.error('Failed to fetch notifications', error);
+    }
+};
 
 const markAdminNotificationsAsRead = () => {
     router.post(route('notifications.mark-as-read'), {}, {
         preserveScroll: true,
-        onSuccess: () => { showNotifications.value = false; }
+        onSuccess: () => { 
+            showNotifications.value = false;
+            adminNotifications.value = [];
+        }
     });
 };
 
@@ -29,13 +42,7 @@ const logout = () => {
 let pollingInterval = null;
 
 onMounted(() => {
-    pollingInterval = setInterval(() => {
-        router.reload({ 
-            only: ['auth'], 
-            preserveState: true, 
-            preserveScroll: true 
-        });
-    }, 10000); // Polling setiap 10 detik
+    pollingInterval = setInterval(fetchNotifications, 10000); // Polling setiap 10 detik dengan payload sangat ringan
 });
 
 onUnmounted(() => {

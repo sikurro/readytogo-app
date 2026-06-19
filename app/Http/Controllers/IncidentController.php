@@ -144,6 +144,14 @@ class IncidentController extends Controller
     }
 
     /**
+     * Get unread notifications for lightweight polling.
+     */
+    public function getUnreadNotifications(Request $request)
+    {
+        return response()->json($request->user()->unreadNotifications);
+    }
+
+    /**
      * Mark all unread notifications of the user as read.
      */
     public function markNotificationsAsRead(Request $request)
