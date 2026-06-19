@@ -89,7 +89,7 @@ const logout = () => {
 let pollingInterval = null;
 
 onMounted(() => {
-    pollingInterval = setInterval(fetchNotifications, 10000); // Polling setiap 10 detik dengan payload sangat ringan
+    pollingInterval = setInterval(fetchNotifications, 30000); // Polling setiap 30 detik dengan payload sangat ringan
 });
 
 onUnmounted(() => {

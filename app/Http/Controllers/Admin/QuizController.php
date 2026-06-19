@@ -96,7 +96,7 @@ class QuizController extends Controller
             'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
-        Quiz::create($request->all());
+        Quiz::create($request->validated());
         return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil dibuat.');
     }
 
@@ -121,7 +121,7 @@ class QuizController extends Controller
             'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
-        $quiz->update($request->all());
+        $quiz->update($request->validated());
         return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil diperbarui.');
     }
 
@@ -186,10 +186,6 @@ class QuizController extends Controller
 
     public function history(Request $request)
     {
-        if (!$request->user()->isAdmin()) {
-            abort(403);
-        }
-
         $search = $request->input('search');
         $month = $request->input('month');
         $sortField = $request->input('sort_field', 'tanggal');
@@ -242,10 +238,6 @@ class QuizController extends Controller
 
     public function exportHistory(Request $request)
     {
-        if (!$request->user()->isAdmin()) {
-            abort(403);
-        }
-
         $search = $request->input('search');
         $month = $request->input('month');
         $sortField = $request->input('sort_field', 'tanggal');
