@@ -434,6 +434,38 @@ class DashboardController extends Controller
 
         return response()->json($result);
     }
+
+    public function incidentDetails(Request $request)
+    {
+        $status = $request->query('status');
+        
+        $query = Incident::with('user:id,name,nip')->latest();
+        
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $incidents = $query->get()->map(function ($incident) {
+            return [
+                'id' => $incident->id,
+                'category' => $incident->category,
+                'severity' => $incident->severity,
+                'status' => $incident->status,
+                'description' => $incident->description,
+                'latitude' => $incident->latitude,
+                'longitude' => $incident->longitude,
+                'image_path' => $incident->image_path,
+                'admin_feedback' => $incident->admin_feedback,
+                'resolved_at' => $incident->resolved_at,
+                'created_at' => $incident->created_at,
+                'user' => [
+                    'name' => $incident->user->name,
+                ]
+            ];
+        });
+
+        return response()->json($incidents);
+    }
 }
 
 

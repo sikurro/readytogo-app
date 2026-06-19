@@ -2,6 +2,7 @@
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AdminDashboardLayout from '@/Layouts/AdminDashboardLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import IncidentDetailModal from '@/Components/IncidentDetailModal.vue';
 import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 
@@ -27,33 +28,19 @@ let markersGroup = null;
 const isExporting = ref(false);
 const exportProgress = ref(0);
 
-// CAPA Form
-const statusForm = useForm({
-    status: '',
-    admin_feedback: '',
-});
-
 const openModal = (incident) => {
     selectedIncident.value = incident;
-    statusForm.status = incident.status;
-    statusForm.admin_feedback = incident.admin_feedback || '';
     isModalOpen.value = true;
 };
 
 const closeModal = () => {
     isModalOpen.value = false;
     selectedIncident.value = null;
-    statusForm.reset();
 };
 
-const submitStatusUpdate = () => {
-    statusForm.put(route('admin.incidents.update-status', selectedIncident.value.id), {
-        onSuccess: () => {
-            closeModal();
-            // Refresh map markers
-            updateMapMarkers();
-        }
-    });
+const handleIncidentUpdated = () => {
+    closeModal();
+    updateMapMarkers();
 };
 
 const resetFilters = () => {
@@ -503,151 +490,12 @@ watch(() => props.allIncidents, () => {
             </div>
         </div>
 
-        <!-- CAPA Management Modal -->
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <!-- Overlay backdrop -->
-            <div @click="closeModal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
-
-            <!-- Content Card -->
-            <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fadeIn">
-                <!-- Modal Header -->
-                <div class="p-5 border-b border-slate-800 bg-slate-950/40 flex items-center justify-between">
-                    <div>
-                        <h4 class="text-sm font-black text-slate-200 uppercase tracking-widest">Detail & Tindak Lanjut Laporan</h4>
-                        <span class="text-[10px] text-slate-500">Laporan ID: #{{ selectedIncident.id }} | Dibuat: {{ formatDate(selectedIncident.created_at) }}</span>
-                    </div>
-                    <button @click="closeModal" class="text-slate-400 hover:text-slate-200 font-black p-1">✕</button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="p-6 overflow-y-auto max-h-[65vh] space-y-6 text-xs leading-relaxed">
-                    <!-- Reporter and Tags Info -->
-                    <div class="grid grid-cols-2 gap-4 bg-slate-950/40 border border-slate-850 rounded-xl p-4">
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-0.5">Nama Pelapor</span>
-                            <span class="font-bold text-slate-200 block">{{ selectedIncident.user?.name }}</span>
-                            <span class="text-[10px] text-slate-400">{{ selectedIncident.user?.email }}</span>
-                        </div>
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Status Kategori & Severity</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                <span :class="getCategoryBadgeClass(selectedIncident.category)" class="px-2 py-0.5 rounded-md text-[9px] font-bold">
-                                    {{ getCategoryLabel(selectedIncident.category) }}
-                                </span>
-                                <span :class="getSeverityBadgeClass(selectedIncident.severity)" class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase">
-                                    {{ selectedIncident.severity }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="space-y-1">
-                        <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Deskripsi Kejadian / Bahaya</span>
-                        <p class="text-slate-300 whitespace-pre-wrap leading-relaxed">{{ selectedIncident.description }}</p>
-                    </div>
-
-                    <!-- Attachment Image -->
-                    <div v-if="selectedIncident.image_path" class="space-y-1.5">
-                        <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Foto Bukti Lampiran</span>
-                        <div class="relative rounded-xl overflow-hidden border border-slate-850 bg-slate-950/80 p-2 max-h-72 flex justify-center">
-                            <img :src="`/storage/${selectedIncident.image_path}`" alt="Lampiran" class="object-contain max-h-64 rounded-lg" />
-                        </div>
-                    </div>
-
-                    <!-- GPS Coordinates -->
-                    <div v-if="selectedIncident.latitude && selectedIncident.longitude" class="bg-slate-950/40 border border-slate-850 rounded-xl p-4 flex items-center justify-between">
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Titik Koordinat GPS</span>
-                            <span class="text-slate-300 font-mono">{{ selectedIncident.latitude }}, {{ selectedIncident.longitude }}</span>
-                        </div>
-                        <a 
-                            :href="`https://www.google.com/maps/search/?api=1&query=${selectedIncident.latitude},${selectedIncident.longitude}`" 
-                            target="_blank" 
-                            class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 font-bold px-3.5 py-2 rounded-xl transition-all"
-                        >
-                            Buka di Google Maps
-                        </a>
-                    </div>
-
-                    <!-- Action form (CAPA) -->
-                    <form @submit.prevent="submitStatusUpdate" class="border-t border-slate-800 pt-5 space-y-4">
-                        <h4 class="text-xs font-black text-slate-200 uppercase tracking-widest">Penanganan & Tindakan (CAPA)</h4>
-                        
-                        <!-- Status Selection -->
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Perubahan Status Tiket</label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <button 
-                                    type="button" 
-                                    @click="statusForm.status = 'open'"
-                                    class="py-2.5 rounded-xl border text-center font-bold tracking-wider uppercase transition-all"
-                                    :class="statusForm.status === 'open' 
-                                        ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-md' 
-                                        : 'bg-slate-950 border-slate-850 text-slate-500 hover:bg-slate-850'"
-                                >
-                                    Open
-                                </button>
-                                <button 
-                                    type="button" 
-                                    @click="statusForm.status = 'investigating'"
-                                    class="py-2.5 rounded-xl border text-center font-bold tracking-wider uppercase transition-all"
-                                    :class="statusForm.status === 'investigating' 
-                                        ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400 shadow-md' 
-                                        : 'bg-slate-950 border-slate-850 text-slate-500 hover:bg-slate-850'"
-                                >
-                                    Investigate
-                                </button>
-                                <button 
-                                    type="button" 
-                                    @click="statusForm.status = 'closed'"
-                                    class="py-2.5 rounded-xl border text-center font-bold tracking-wider uppercase transition-all"
-                                    :class="statusForm.status === 'closed' 
-                                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-md' 
-                                        : 'bg-slate-950 border-slate-850 text-slate-500 hover:bg-slate-850'"
-                                >
-                                    Close / Resolve
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Feedback Message (Mandatory if Closed) -->
-                        <div class="space-y-2">
-                            <label for="admin_feedback" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                                Tindakan Korektif & Pencegahan (Pesan Feedback ke Pelapor)
-                                <span v-if="statusForm.status === 'closed'" class="text-rose-450 text-rose-400 font-black">* (Wajib diisi)</span>
-                            </label>
-                            <textarea 
-                                id="admin_feedback"
-                                v-model="statusForm.admin_feedback"
-                                rows="3"
-                                placeholder="Jelaskan tindakan yang telah diambil untuk mengatasi insiden K3 ini. Pesan ini akan dikirimkan otomatis ke perwira pandu pelapor."
-                                class="w-full bg-slate-950 border border-slate-850 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl p-3 text-slate-200 text-xs"
-                            ></textarea>
-                            <p v-if="statusForm.errors.admin_feedback" class="text-[10px] text-rose-400 font-semibold">{{ statusForm.errors.admin_feedback }}</p>
-                        </div>
-
-                        <!-- Submit and Close Buttons -->
-                        <div class="flex items-center justify-end gap-3 pt-2">
-                            <button 
-                                type="button" 
-                                @click="closeModal" 
-                                class="bg-slate-950 border border-slate-800 hover:bg-slate-850 text-slate-350 font-bold px-4 py-2.5 rounded-xl transition-all"
-                            >
-                                Batal
-                            </button>
-                            <button 
-                                type="submit" 
-                                :disabled="statusForm.processing || (statusForm.status === 'closed' && !statusForm.admin_feedback.trim())"
-                                class="bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-black px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200"
-                            >
-                                {{ statusForm.processing ? 'Menyimpan...' : 'Simpan Tindakan' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <IncidentDetailModal 
+            :is-open="isModalOpen"
+            :incident="selectedIncident"
+            @close="closeModal"
+            @updated="handleIncidentUpdated"
+        />
 
         <!-- Export Progress Modal -->
         <div v-if="isExporting" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
