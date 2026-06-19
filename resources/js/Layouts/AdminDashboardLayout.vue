@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Toast from '@/Components/Toast.vue';
 import axios from 'axios';
@@ -11,6 +11,53 @@ defineProps({
 const isSidebarOpen = ref(true);
 const page = usePage();
 const showNotifications = ref(false);
+
+const isKuisActive = computed(() => {
+    return route().current('admin.quizzes.*') || 
+           route().current('admin.questions.*') || 
+           route().current('admin.quiz.*') || 
+           route().current('admin.leaderboard.*');
+});
+
+const isUserActive = computed(() => {
+    return route().current('admin.users.*');
+});
+
+const isInsidenActive = computed(() => {
+    return route().current('admin.incidents.*');
+});
+
+const isFatigueActive = computed(() => {
+    return route().current('admin.fatigue-checks.*') || 
+           route().current('admin.fatigue-questions.*');
+});
+
+const isMasterActive = computed(() => {
+    return route().current('admin.locations.*') || 
+           route().current('admin.categories.*');
+});
+
+const isSettingActive = computed(() => {
+    return route().current('profile.edit');
+});
+
+const openMenus = ref({
+    kuis: isKuisActive.value,
+    user: isUserActive.value,
+    insiden: isInsidenActive.value,
+    fatigue: isFatigueActive.value,
+    master: isMasterActive.value,
+    setting: isSettingActive.value,
+});
+
+const toggleMenu = (menuName) => {
+    if (!isSidebarOpen.value) {
+        isSidebarOpen.value = true;
+        openMenus.value[menuName] = true;
+    } else {
+        openMenus.value[menuName] = !openMenus.value[menuName];
+    }
+};
 
 const adminNotifications = ref(
     page.props.auth.notifications?.filter(n => n.type === 'App\\Notifications\\NewIncidentReported') || []
@@ -71,7 +118,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Navigation Links -->
-            <nav class="flex-1 py-4 px-3 space-y-1">
+            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
                 <!-- Dashboard -->
                 <Link :href="route('admin.dashboard')" :class="[route().current('admin.dashboard') ? 'bg-blue-500/10 text-blue-500 border-l-4 border-blue-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -80,96 +127,148 @@ onUnmounted(() => {
                     <span v-if="isSidebarOpen">Dashboard</span>
                 </Link>
 
-                <!-- Bank Soal -->
-                <Link :href="route('admin.questions.index')" :class="[route().current('admin.questions.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Bank Soal</span>
-                </Link>
-
-                <!-- Quizzes Management -->
-                <Link :href="route('admin.quizzes.index')" :class="[route().current('admin.quizzes.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Kelola Kuis</span>
-                </Link>
-
-                <!-- Quizzes History -->
-                <Link :href="route('admin.quiz.history')" :class="[route().current('admin.quiz.history') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.03 0 1.9.693 2.166 1.638m-7.377 0A48.536 48.536 0 0 1 12 3m0 0c-1.135.094-1.976 1.057-1.976 2.192V16.5A2.25 2.25 0 0 0 12 18.75h.007v.008H12v-.008Z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Riwayat Kuis</span>
-                </Link>
-
-                <!-- Leaderboard Kuis Harian -->
-                <Link :href="route('admin.leaderboard.daily')" :class="[route().current('admin.leaderboard.daily') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18M3 6h18M3 18h18" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Leaderboard Harian</span>
-                </Link>
-
-                <!-- Leaderboard Kuis Event -->
-                <Link :href="route('admin.leaderboard.event')" :class="[route().current('admin.leaderboard.event') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Leaderboard Event</span>
-                </Link>
+                <!-- Manajemen Kuis -->
+                <div class="space-y-1">
+                    <button @click="toggleMenu('kuis')" :class="[isKuisActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Manajemen Kuis</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.kuis ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.kuis" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('admin.leaderboard.daily')" :class="[route().current('admin.leaderboard.daily') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Leaderboard Harian
+                        </Link>
+                        <Link :href="route('admin.leaderboard.event')" :class="[route().current('admin.leaderboard.event') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Leaderboard Event
+                        </Link>
+                        <Link :href="route('admin.quiz.history')" :class="[route().current('admin.quiz.history') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Riwayat Kuis
+                        </Link>
+                        <Link :href="route('admin.quizzes.index')" :class="[route().current('admin.quizzes.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Kelola Kuis
+                        </Link>
+                        <Link :href="route('admin.questions.index')" :class="[route().current('admin.questions.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Bank Soal
+                        </Link>
+                    </div>
+                </div>
 
                 <!-- Manajemen User -->
-                <Link :href="route('admin.users.index')" :class="[route().current('admin.users.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A2.25 2.25 0 0112.75 21.5h-1.5a2.25 2.25 0 01-2.25-2.263V19.13m-2.625.372A9.336 9.336 0 011.5 18.553a4.125 4.125 0 017.533-2.493m0 0a9.07 9.07 0 013.217-3.185M9.813 15.904L9 21m8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M12 12.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Manajemen User</span>
-                </Link>
+                <div class="space-y-1">
+                    <button @click="toggleMenu('user')" :class="[isUserActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A2.25 2.25 0 0112.75 21.5h-1.5a2.25 2.25 0 01-2.25-2.263V19.13m-2.625.372A9.336 9.336 0 011.5 18.553a4.125 4.125 0 017.533-2.493m0 0a9.07 9.07 0 013.217-3.185M9.813 15.904L9 21m8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M12 12.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Manajemen User</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.user ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.user" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('admin.users.index')" :class="[route().current('admin.users.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            User
+                        </Link>
+                    </div>
+                </div>
 
-                <!-- Master Lokasi -->
-                <Link :href="route('admin.locations.index')" :class="[route().current('admin.locations.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Master Lokasi</span>
-                </Link>
+                <!-- Manajemen Insiden -->
+                <div class="space-y-1">
+                    <button @click="toggleMenu('insiden')" :class="[isInsidenActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Manajemen Insiden</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.insiden ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.insiden" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('admin.incidents.dashboard')" :class="[route().current('admin.incidents.dashboard') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Dashboard Insiden
+                        </Link>
+                        <Link :href="route('admin.incidents.index')" :class="[route().current('admin.incidents.index') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Laporan Insiden
+                        </Link>
+                    </div>
+                </div>
 
-                <!-- Dashboard Insiden -->
-                <Link :href="route('admin.incidents.dashboard')" :class="[route().current('admin.incidents.dashboard') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5Z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Dashboard Insiden</span>
-                </Link>
+                <!-- Manajemen Fatigue -->
+                <div class="space-y-1">
+                    <button @click="toggleMenu('fatigue')" :class="[isFatigueActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0110 21a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0114 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Manajemen Fatigue</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.fatigue ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.fatigue" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('admin.fatigue-checks.index')" :class="[route().current('admin.fatigue-checks.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Laporan Kelelahan
+                        </Link>
+                        <Link :href="route('admin.fatigue-questions.index')" :class="[route().current('admin.fatigue-questions.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Pertanyaan Fatigue
+                        </Link>
+                    </div>
+                </div>
 
-                <!-- Incidents Reporting List -->
-                <Link :href="route('admin.incidents.index')" :class="[route().current('admin.incidents.index') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Laporan Insiden</span>
-                </Link>
+                <!-- Master -->
+                <div class="space-y-1">
+                    <button @click="toggleMenu('master')" :class="[isMasterActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V10.125m16.5 0v3.75m-16.5-3.75v3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125v-3.75" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Master</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.master ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.master" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('admin.locations.index')" :class="[route().current('admin.locations.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Lokasi
+                        </Link>
+                        <Link :href="route('admin.categories.index')" :class="[route().current('admin.categories.*') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Kategori
+                        </Link>
+                    </div>
+                </div>
 
-                <!-- Fatigue Reports -->
-                <Link :href="route('admin.fatigue-checks.index')" :class="[route().current('admin.fatigue-checks.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0110 21a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0114 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Laporan Kelelahan</span>
-                </Link>
-
-                <!-- Fatigue Questions CRUD -->
-                <Link :href="route('admin.fatigue-questions.index')" :class="[route().current('admin.fatigue-questions.*') ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                    </svg>
-                    <span v-if="isSidebarOpen">Pertanyaan Fatigue</span>
-                </Link>
+                <!-- Setting -->
+                <div class="space-y-1">
+                    <button @click="toggleMenu('setting')" :class="[isSettingActive ? 'bg-amber-500/10 text-amber-500 border-l-4 border-amber-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none', isSidebarOpen ? 'justify-between' : 'justify-center']">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.43l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                            <span v-if="isSidebarOpen">Setting</span>
+                        </div>
+                        <svg v-if="isSidebarOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" :class="[openMenus.setting ? 'rotate-180' : '', 'w-3.5 h-3.5 transition-transform duration-200 text-slate-500']">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div v-show="isSidebarOpen && openMenus.setting" class="mt-1 space-y-1 pl-4 border-l border-slate-800 ml-5">
+                        <Link :href="route('profile.edit')" :class="[route().current('profile.edit') ? 'text-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-200', 'block py-1.5 text-xs transition-colors']">
+                            Profil / Pengaturan
+                        </Link>
+                    </div>
+                </div>
             </nav>
 
             <!-- Sidebar Footer / Profile -->
