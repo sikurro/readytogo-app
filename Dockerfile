@@ -1,18 +1,5 @@
 # ==========================================
-# Stage 1: Build Frontend Assets (Vite)
-# ==========================================
-FROM node:20-alpine AS node-builder
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
-
-COPY . .
-RUN npm run build
-
-# ==========================================
-# Stage 2: Build PHP Dependencies (Composer)
+# Stage 1: Build PHP Dependencies (Composer)
 # ==========================================
 FROM composer:2.6 AS composer-builder
 WORKDIR /app
@@ -22,6 +9,20 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignor
 
 COPY . .
 RUN composer dump-autoload --optimize --no-dev
+
+# ==========================================
+# Stage 2: Build Frontend Assets (Vite)
+# ==========================================
+FROM node:20-alpine AS node-builder
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+COPY . .
+COPY --from=composer-builder /app/vendor /app/vendor
+RUN npm run build
+
 
 # ==========================================
 # Stage 3: Staging / Production Runtime
