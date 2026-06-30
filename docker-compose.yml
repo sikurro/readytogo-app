@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: readytogo_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      APP_NAME: "${APP_NAME:-ReadyToGo Staging}"
+      APP_ENV: "${APP_ENV:-staging}"
+      APP_KEY: "${APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL:-http://localhost:8080}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-readytogo_db}"
+      DB_USERNAME: "${DB_USERNAME:-readytogo_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-secretpassword}"
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: file
+      CACHE_DRIVER: file
+    volumes:
+      - app_storage:/var/www/html/storage/app/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - readytogo_net
+
+  db:
+    image: mysql:8.0
+    container_name: readytogo_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE:-readytogo_db}"
+      MYSQL_USER: "${DB_USERNAME:-readytogo_user}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-secretpassword}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-rootpassword}"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - readytogo_net
+
+networks:
+  readytogo_net:
+    driver: bridge
+
+volumes:
+  app_storage:
+  db_data:
