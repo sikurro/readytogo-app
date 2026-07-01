@@ -85,7 +85,7 @@ class QuizController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'theme' => 'required|string|max:255',
             'duration_minutes' => 'required|integer|min:1',
@@ -96,7 +96,7 @@ class QuizController extends Controller
             'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
-        Quiz::create($request->validated());
+        Quiz::create($validated);
         return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil dibuat.');
     }
 
@@ -110,7 +110,7 @@ class QuizController extends Controller
 
     public function update(Request $request, Quiz $quiz)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'theme' => 'required|string|max:255',
             'duration_minutes' => 'required|integer|min:1',
@@ -121,7 +121,7 @@ class QuizController extends Controller
             'end_time' => 'nullable|date|after_or_equal:start_time'
         ]);
 
-        $quiz->update($request->validated());
+        $quiz->update($validated);
         return redirect()->route('admin.quizzes.index', $request->only(['search', 'status', 'tipe', 'per_page', 'sort_field', 'sort_direction', 'page']))->with('success', 'Kuis berhasil diperbarui.');
     }
 
