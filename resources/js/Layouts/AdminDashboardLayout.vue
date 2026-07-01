@@ -98,11 +98,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-900 text-slate-100 flex font-sans selection:bg-amber-500 selection:text-slate-900">
+    <div class="h-screen bg-slate-900 text-slate-100 flex font-sans selection:bg-amber-500 selection:text-slate-900 overflow-hidden">
         <!-- Sidebar -->
         <aside :class="[isSidebarOpen ? 'w-64' : 'w-20', 'bg-slate-950 border-r border-slate-800 transition-all duration-300 flex flex-col z-40 relative']">
             <!-- Sidebar Header -->
-            <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800">
+            <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800 flex-shrink-0">
                 <div class="flex items-center gap-2" v-if="isSidebarOpen">
                     <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black px-2.5 py-1 rounded-md text-sm tracking-wider">R2G</span>
                     <span class="font-bold text-sm text-slate-100 tracking-tight">Admin Panel</span>
@@ -118,7 +118,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Navigation Links -->
-            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
                 <!-- Dashboard -->
                 <Link :href="route('admin.dashboard')" :class="[route().current('admin.dashboard') ? 'bg-blue-500/10 text-blue-500 border-l-4 border-blue-500' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100', 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors']">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -272,7 +272,7 @@ onUnmounted(() => {
             </nav>
 
             <!-- Sidebar Footer / Profile -->
-            <div class="p-4 border-t border-slate-800 bg-slate-950/80">
+            <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex-shrink-0">
                 <div class="flex items-center gap-3" v-if="isSidebarOpen">
                     <div class="h-9 w-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-amber-500 uppercase">
                         {{ $page.props.auth.user.name.charAt(0) }}
@@ -300,7 +300,7 @@ onUnmounted(() => {
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             <!-- Header bar -->
-            <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-30">
+            <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-30 flex-shrink-0">
                 <h2 class="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
                     <slot name="header" />
                 </h2>
